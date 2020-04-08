@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Friend Or Foe</string>
+    <string name="app_name">Friend or Foe</string>
+    <string name="image_view_content_description">The picture to categorize</string>
 </resources>

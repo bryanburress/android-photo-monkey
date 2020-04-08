@@ -10,7 +10,7 @@
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:srcCompat="@android:drawable/dark_header" />
-
+        app:srcCompat="@android:drawable/dark_header"
+        android:contentDescription="@string/image_view_content_description" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
