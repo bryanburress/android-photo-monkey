@@ -1,4 +1,4 @@
-package com.chesapeaketechnology.friendorfoe;
+package com.chesapeaketechnology.photomonkey;
 
 import android.content.Context;
 
@@ -24,6 +24,6 @@ public class ExampleInstrumentedTest
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-        assertEquals("com.chesapeaketechnology.friendorfoe", appContext.getPackageName());
+        assertEquals("com.chesapeaketechnology.photomonkey", appContext.getPackageName());
     }
 }

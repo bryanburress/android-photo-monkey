@@ -1,6 +1,6 @@
-# Friend or Foe Android App
+# Photo Monkey Android App
 
-The Friend or Foe Android App allows for categorizing pictures as friend or foe.
+The Photo Monkey Android App allows for taking pictures, adding a description, and saving them to a custom directory.
 
 ## Getting Started
 
@@ -18,7 +18,7 @@ Install Android Studio to work on this code.
 ## Changelog
 
 ##### [0.1.0]() - 2020-04-17
- * Initial cut of the Friend or Foe Android App
+ * Initial cut of the Photo Monkey Android App
 
 ## Contact
 

@@ -1,4 +1,4 @@
-package com.chesapeaketechnology.friendorfoe;
+package com.chesapeaketechnology.photomonkey;
 
 import org.junit.Test;
 

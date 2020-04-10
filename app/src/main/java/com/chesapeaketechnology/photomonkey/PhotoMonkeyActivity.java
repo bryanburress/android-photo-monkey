@@ -1,4 +1,4 @@
-package com.chesapeaketechnology.friendorfoe;
+package com.chesapeaketechnology.photomonkey;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -17,14 +17,14 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * The main activity for the Friend or Foe app.  This activity first launches the Android device's default camera app,
- * and once the user takes a picture they are shown the picture and can categorize it as a picture of a friend or foe.
+ * The main activity for the Photo Monkey app.  This activity first launches the Android device's default camera app,
+ * and once the user takes a picture they are shown the picture to add any details.
  *
  * @since 0.1.0
  */
-public class FriendOrFoeActivity extends AppCompatActivity
+public class PhotoMonkeyActivity extends AppCompatActivity
 {
-    private static final String LOG_TAG = FriendOrFoeActivity.class.getSimpleName();
+    private static final String LOG_TAG = PhotoMonkeyActivity.class.getSimpleName();
 
     private static final int REQUEST_IMAGE_CAPTURE = 2;
 
@@ -59,10 +59,11 @@ public class FriendOrFoeActivity extends AppCompatActivity
 
             imageView.setImageURI(photoUri);
 
-            // TODO 1. Update the UI to add options for categorizing the picture as friend or foe
-            // TODO 2. Record the user selection in the exif data of the photo
-            // TODO 3. Call addPhotoToGallery(); once the exif data is saved
-            // TODO 4. Send the image file over to Sync Monkey so it can be uploaded to Azure
+            // TODO 1. Update the UI to add options for adding a description to the photo.
+            // TODO 2. Record the user description in the exif data of the photo
+            // TODO 3. Send the image file over to Sync Monkey so it can be uploaded to Azure, or maybe update Sync
+            //  Monkey so we can send it a command to sync now if we go the route of adding in the photo directory to
+            //  the list of directories to sync.
         }
 
         super.onActivityResult(requestCode, resultCode, data);
@@ -71,7 +72,7 @@ public class FriendOrFoeActivity extends AppCompatActivity
     /**
      * Create a picture intent and send it to the default camera app.
      * <p>
-     * Once the user takes the picture we will show it to the user so they can categorize it.
+     * Once the user takes the picture we will show it to the user so they can add a description to it.
      */
     private void dispatchTakePictureIntent()
     {
@@ -87,13 +88,13 @@ public class FriendOrFoeActivity extends AppCompatActivity
             } catch (IOException e)
             {
                 // Error occurred while creating the File
-                Log.e(LOG_TAG, "Could not create the image file for the Friend or Foe app", e);
+                Log.e(LOG_TAG, "Could not create the image file for the Photo Monkey app", e);
             }
 
             // Continue only if the File was successfully created
             if (photoFile != null)
             {
-                photoUri = FileProvider.getUriForFile(this, FriendOrFoeConstants.AUTHORITY, photoFile);
+                photoUri = FileProvider.getUriForFile(this, PhotoMonkeyConstants.AUTHORITY, photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
@@ -113,7 +114,7 @@ public class FriendOrFoeActivity extends AppCompatActivity
     {
         // Create an image file name
         final String timeStamp = DATE_TIME_FORMATTER.format(ZonedDateTime.now());
-        final String imageFileName = FriendOrFoeConstants.FRIEND_OR_FOE_PHOTO_NAME_PREFIX + timeStamp;
+        final String imageFileName = PhotoMonkeyConstants.PHOTO_MONKEY_PHOTO_NAME_PREFIX + timeStamp;
         final File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES); // TODO We might want to update this to the regular public photo directory
         final File image = File.createTempFile(
                 imageFileName,  /* prefix */
