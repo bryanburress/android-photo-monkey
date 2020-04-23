@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Photo Monkey</string>
     <string name="image_view_content_description">The picture to save</string>
+    <string name="image_title_hint">Image title…</string>
+    <string name="image_description_hint">Optional image description…</string>
+    <string name="add_information_button_text">Edit photo info</string>
+    <string name="save_button_text">Save</string>
 </resources>

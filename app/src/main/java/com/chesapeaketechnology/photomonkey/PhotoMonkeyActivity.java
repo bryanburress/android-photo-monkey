@@ -1,13 +1,20 @@
 package com.chesapeaketechnology.photomonkey;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
@@ -15,6 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+
+import static android.os.Environment.*;
 
 /**
  * The main activity for the Photo Monkey app.  This activity first launches the Android device's default camera app,
@@ -31,9 +40,16 @@ public class PhotoMonkeyActivity extends AppCompatActivity
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     private ImageView imageView;
+    private View dialogView;
+    private EditText description;
+    private Button editButton;
+    private Button newPhotoButton;
+
     private String currentPhotoPath;
     private Uri photoUri;
+    private File imageFileChangeMe;
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -41,9 +57,56 @@ public class PhotoMonkeyActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main);
 
+        final Button saveButton = findViewById(R.id.saveButton);
+
         imageView = findViewById(R.id.imageView);
+        dialogView = findViewById(R.id.dialog);
+        description = findViewById(R.id.descriptionEditText);
+        editButton = findViewById(R.id.editButton);
+        newPhotoButton = findViewById(R.id.newPhotoButton);
+
+        editButton.setOnClickListener(v -> {
+            dialogView.setVisibility(View.VISIBLE);
+            description.requestFocus();
+        });
+
+        newPhotoButton.setOnClickListener(v -> {
+            dispatchTakePictureIntent();
+        });
+
+        saveButton.setOnClickListener(v -> {
+            dialogView.setVisibility(View.GONE);
+            newPhotoButton.setVisibility(View.VISIBLE);
+            hideKeyboard();
+
+            addExifDataToPhoto(description.getText().toString());
+            addPhotoToGallery();
+        });
 
         dispatchTakePictureIntent();
+    }
+
+    /**
+     * Reset UI after taking a picture
+     */
+    private void resetUI()
+    {
+        newPhotoButton.setVisibility(View.GONE);
+        dialogView.setVisibility(View.VISIBLE);
+        description.setText("");
+        description.requestFocus();
+    }
+
+    /**
+     * Hides the keyboard if it is open.
+     */
+    private void hideKeyboard()
+    {
+        final InputMethodManager inputMethodManager = (InputMethodManager) getApplicationContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
+        if (inputMethodManager != null)
+        {
+            inputMethodManager.hideSoftInputFromWindow(dialogView.getWindowToken(), 0);
+        }
     }
 
     @Override
@@ -58,6 +121,7 @@ public class PhotoMonkeyActivity extends AppCompatActivity
             }
 
             imageView.setImageURI(photoUri);
+            resetUI();
 
             // TODO 1. Update the UI to add options for adding a description to the photo.
             // TODO 2. Record the user description in the exif data of the photo
@@ -115,21 +179,41 @@ public class PhotoMonkeyActivity extends AppCompatActivity
         // Create an image file name
         final String timeStamp = DATE_TIME_FORMATTER.format(ZonedDateTime.now());
         final String imageFileName = PhotoMonkeyConstants.PHOTO_MONKEY_PHOTO_NAME_PREFIX + timeStamp;
-        final File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES); // TODO We might want to update this to the regular public photo directory
-        final File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",   /* suffix */
-                storageDir      /* directory */
-        );
 
-        // Save a file: path for use with ACTION_VIEW intents
+        // TODO: getExternalStorageDirectory is deprecated
+        final File storageDir = new File(
+                getExternalStorageDirectory(),
+                PhotoMonkeyConstants.PHOTO_MONKEY_PICTURES_DIRECTORY
+        );
+//        final File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES); // TODO We might want to update this to the regular public photo directory
+
+        storageDir.mkdir();
+        File image = File.createTempFile(imageFileName, ".jpg", storageDir);
+        imageFileChangeMe = image;
+
         currentPhotoPath = image.getAbsolutePath();
         return image;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private void addExifDataToPhoto(String description)
+    {
+        try
+        {
+            ExifInterface exif = new ExifInterface(currentPhotoPath);
+            exif.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, description);
+            exif.saveAttributes();
+        } catch (IOException e)
+        {
+            Log.e(LOG_TAG, "Error adding Exif data to image:");
+            e.printStackTrace();
+        }
     }
 
     /**
      * We want the picture to show up in the Android Gallery so that other apps can display this photo.
      */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     private void addPhotoToGallery()
     {
         if (currentPhotoPath == null)
@@ -138,12 +222,10 @@ public class PhotoMonkeyActivity extends AppCompatActivity
             return;
         }
 
-        // FIXME I don't think this actually works as is.  If we switch to using the public photo directory we won't need to share it to the gallery at all
-
-        final Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        final File photoFile = new File(currentPhotoPath);
-        final Uri contentUri = Uri.fromFile(photoFile);
-        mediaScanIntent.setData(contentUri);
-        sendBroadcast(mediaScanIntent);
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        File f = new File(currentPhotoPath);
+        Uri contentUri = Uri.fromFile(f);
+        mediaScanIntent.setData(photoUri);
+        this.sendBroadcast(mediaScanIntent);
     }
 }

@@ -1,16 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".PhotoMonkeyActivity">
-
-    <ImageView
-        android:id="@+id/imageView"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:srcCompat="@android:drawable/dark_header"
-        android:contentDescription="@string/image_view_content_description" />
+        android:background="#101010"
+        tools:context=".PhotoMonkeyActivity">
+
+    <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="top"
+            android:contentDescription="@string/image_view_content_description"
+            android:scaleType="fitCenter"
+            app:srcCompat="@android:drawable/dark_header" />
+
+    <LinearLayout
+            android:id="@+id/dialog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginHorizontal="16dp"
+            android:background="@drawable/dialog_box"
+            android:elevation="1000dp"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:visibility="visible">
+
+        <EditText
+                android:id="@+id/descriptionEditText"
+                style="@style/Description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="@string/image_description_hint"
+                android:inputType="textMultiLine|text|textImeMultiLine"
+                android:maxLines="10" />
+
+        <Button
+                android:id="@+id/saveButton"
+                style="@style/SaveButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:text="@string/save_button_text" />
+
+    </LinearLayout>
+
+    <Button
+            android:id="@+id/editButton"
+            style="@style/TopButton"
+            android:layout_gravity="top|end"
+            android:background="@drawable/ic_edit" />
+
+    <Button
+            android:id="@+id/newPhotoButton"
+            style="@style/TopButton"
+            android:layout_gravity="top|start"
+            android:background="@drawable/ic_new_photo"
+            android:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

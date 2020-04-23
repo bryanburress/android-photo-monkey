@@ -53,4 +53,10 @@
     <color name="eggshell_38">#61F2E6DE</color>
 
     <color name="putty">#C1B8B2</color>
+
+    <color name="deepBlue">#0072C6</color>
+    <color name="lightBlue">#6D9FC5</color>
+    <color name="offWhite">#E5E5E5</color>
+    <color name="lightGrey">#A3A3A3</color>
+
 </resources>

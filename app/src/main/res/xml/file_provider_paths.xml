@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <external-files-path name="photo_monkey_images" path="Pictures" />
+    <external-path
+            name="external"
+            path="/" />
+    <files-path
+            name="pictures"
+            path="Images/" />
 </paths>

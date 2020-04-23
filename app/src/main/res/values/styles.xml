@@ -2,9 +2,36 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Hide application bar -->
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="colorControlNormal">@color/offWhite</item>
+        <item name="colorControlActivated">@color/lightBlue</item>
+    </style>
+
+    <style name="SaveButton">
+        <item name="android:background">@drawable/button</item>
+        <item name="android:textColor">@color/offWhite</item>
+        <item name="android:layout_margin">5dp</item>
+    </style>
+
+
+    <style name="Description">
+        <!-- <item name="android:background">#ff0000</item> -->
+        <item name="android:textColor">@color/offWhite</item>
+        <item name="android:textColorHint">@color/white_38</item>
+    </style>
+
+    <style name="TopButton">
+        <item name="android:layout_width">@dimen/image_button_size</item>
+        <item name="android:layout_height">@dimen/image_button_size</item>
+        <item name="android:layout_marginHorizontal">@dimen/medium_margin</item>
+        <item name="android:layout_marginTop">@dimen/large_margin</item>
     </style>
 
 </resources>
