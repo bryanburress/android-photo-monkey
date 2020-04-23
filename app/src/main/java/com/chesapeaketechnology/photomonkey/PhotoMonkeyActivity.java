@@ -47,7 +47,6 @@ public class PhotoMonkeyActivity extends AppCompatActivity
 
     private String currentPhotoPath;
     private Uri photoUri;
-    private File imageFileChangeMe;
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
@@ -65,6 +64,8 @@ public class PhotoMonkeyActivity extends AppCompatActivity
         editButton = findViewById(R.id.editButton);
         newPhotoButton = findViewById(R.id.newPhotoButton);
 
+        resetUI();
+
         editButton.setOnClickListener(v -> {
             dialogView.setVisibility(View.VISIBLE);
             description.requestFocus();
@@ -77,6 +78,7 @@ public class PhotoMonkeyActivity extends AppCompatActivity
         saveButton.setOnClickListener(v -> {
             dialogView.setVisibility(View.GONE);
             newPhotoButton.setVisibility(View.VISIBLE);
+            editButton.setVisibility(View.VISIBLE);
             hideKeyboard();
 
             addExifDataToPhoto(description.getText().toString());
@@ -87,12 +89,13 @@ public class PhotoMonkeyActivity extends AppCompatActivity
     }
 
     /**
-     * Reset UI after taking a picture
+     * Reset UI after taking a picture.
      */
     private void resetUI()
     {
         newPhotoButton.setVisibility(View.GONE);
         dialogView.setVisibility(View.VISIBLE);
+        editButton.setVisibility(View.GONE);
         description.setText("");
         description.requestFocus();
     }
@@ -185,11 +188,8 @@ public class PhotoMonkeyActivity extends AppCompatActivity
                 getExternalStorageDirectory(),
                 PhotoMonkeyConstants.PHOTO_MONKEY_PICTURES_DIRECTORY
         );
-//        final File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES); // TODO We might want to update this to the regular public photo directory
-
         storageDir.mkdir();
         File image = File.createTempFile(imageFileName, ".jpg", storageDir);
-        imageFileChangeMe = image;
 
         currentPhotoPath = image.getAbsolutePath();
         return image;
@@ -198,6 +198,7 @@ public class PhotoMonkeyActivity extends AppCompatActivity
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private void addExifDataToPhoto(String description)
     {
+        // TODO: This is does not work
         try
         {
             ExifInterface exif = new ExifInterface(currentPhotoPath);
