@@ -6,6 +6,7 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -183,11 +184,8 @@ public class PhotoMonkeyActivity extends AppCompatActivity
         final String timeStamp = DATE_TIME_FORMATTER.format(ZonedDateTime.now());
         final String imageFileName = PhotoMonkeyConstants.PHOTO_MONKEY_PHOTO_NAME_PREFIX + timeStamp;
 
-        // TODO: getExternalStorageDirectory is deprecated
-        final File storageDir = new File(
-                getExternalStorageDirectory(),
-                PhotoMonkeyConstants.PHOTO_MONKEY_PICTURES_DIRECTORY
-        );
+        // TODO: This could be changed to getExternalStorageDirectory, but that is deprecated.
+        final File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         storageDir.mkdir();
         File image = File.createTempFile(imageFileName, ".jpg", storageDir);
 
@@ -198,7 +196,7 @@ public class PhotoMonkeyActivity extends AppCompatActivity
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private void addExifDataToPhoto(String description)
     {
-        // TODO: This is does not work
+        // TODO: This is does not work if we change to using a public directory.
         try
         {
             ExifInterface exif = new ExifInterface(currentPhotoPath);
