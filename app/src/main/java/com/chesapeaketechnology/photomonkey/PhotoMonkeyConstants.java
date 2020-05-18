@@ -4,6 +4,8 @@ import android.Manifest;
 import android.view.View;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
 
 public final class PhotoMonkeyConstants
 {
@@ -40,4 +42,11 @@ public final class PhotoMonkeyConstants
     public static final long IMMERSIVE_FLAG_TIMEOUT = 500L;
 
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+    public static final String FILENAME = "yyyy-MM-dd-HH-mm-ss-SSS";
+    public static final String PHOTO_EXTENSION = ".jpg";
+    public static final double RATIO_4_3_VALUE = 4.0 / 3.0;
+    public static final double RATIO_16_9_VALUE = 16.0 / 9.0;
+    public static final List<String> EXTENSION_WHITELIST = Arrays.asList("JPG");
+    public static final long ANIMATION_FAST_MILLIS = 50L;
+    public static final long ANIMATION_SLOW_MILLIS = 100L;
 }
