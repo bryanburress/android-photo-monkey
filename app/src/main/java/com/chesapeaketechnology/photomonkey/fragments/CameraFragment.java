@@ -61,8 +61,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import kotlinx.coroutines.Dispatchers;
-
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.ANIMATION_FAST_MILLIS;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.ANIMATION_SLOW_MILLIS;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.EXTENSION_WHITELIST;
@@ -76,7 +74,7 @@ import static java.lang.Integer.min;
 import static java.lang.Math.abs;
 
 
-class CameraFragment extends Fragment {
+public class CameraFragment extends Fragment {
     private static final String LOG_TAG = CameraFragment.class.getSimpleName();
 
     private File outputDirectory;
@@ -92,6 +90,8 @@ class CameraFragment extends Fragment {
     private Preview preview;
 
     private ExecutorService cameraExecutor;
+
+    public CameraFragment(){}
 
     private DisplayManager getDisplayManager() {
         return (DisplayManager)requireContext().getSystemService(Context.DISPLAY_SERVICE);
@@ -183,7 +183,7 @@ class CameraFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         container = (ConstraintLayout) view;
-        View viewFinder = container.findViewById(R.id.view_finder);
+        viewFinder = container.findViewById(R.id.view_finder);
 
         // Initialize our background executor
         cameraExecutor = Executors.newSingleThreadExecutor();
@@ -199,7 +199,7 @@ class CameraFragment extends Fragment {
         getDisplayManager().registerDisplayListener(displayListener, null);
 
         // Determine the output directory
-        File outputDirectory = PhotoMonkeyActivity.getOutputDirectory(requireContext());
+        outputDirectory = PhotoMonkeyActivity.getOutputDirectory(requireContext());
 
         // Wait for the views to be properly laid out
         viewFinder.post(new Runnable() {
@@ -232,7 +232,7 @@ class CameraFragment extends Fragment {
         Log.d(LOG_TAG, String.format("Screen metrics: %d x %d", metrics.widthPixels, metrics.heightPixels));
 
         double screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels);
-        Log.d(LOG_TAG, String.format("Preview aspect ratio: %d", screenAspectRatio));
+        Log.d(LOG_TAG, String.format("Preview aspect ratio: %f", screenAspectRatio));
 
         int rotation = viewFinder.getDisplay().getRotation();
 
@@ -343,20 +343,16 @@ class CameraFragment extends Fragment {
         // In the background, load latest photo taken (if any) for gallery thumbnail
         new AsyncTask<Void, Void, File[]>() {
             @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-            }
-
-            @Override
             protected File[] doInBackground(Void... voids) {
-                File[] files = outputDirectory.listFiles(new FilenameFilter() {
-                    @Override
-                    public boolean accept(File dir, String name) {
+                if (outputDirectory != null) {
+                    File[] files = outputDirectory.listFiles((dir, name) -> {
                         String extension = Files.getFileExtension(name);
                         return EXTENSION_WHITELIST.contains(extension.toUpperCase(Locale.ROOT));
-                    }
-                });
-                return files;
+                    });
+                    return files;
+                } else {
+                    return null;
+                }
             }
 
             @Override
@@ -366,7 +362,7 @@ class CameraFragment extends Fragment {
                     setGalleryThumbnail(Uri.fromFile(lastFile));
                 }
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
 
         // Listener for button used to capture photo
@@ -478,8 +474,8 @@ class CameraFragment extends Fragment {
                 File[] fileList = outputDirectory.listFiles();
                 if (fileList != null && fileList.length > 0) {
                     //TODO: - Add the gallery view
-//                    Navigation.findNavController(requireActivity(), R.id.fragment_container)
-//                            .navigate(CameraFragmentDirections.actionCameraToGallery(outputDirectory.absolutePath));
+                    Navigation.findNavController(requireActivity(), R.id.fragment_container)
+                            .navigate(CameraFragmentDirections.actionCameraFragmentToGalleryFragment(outputDirectory.getAbsolutePath()));
                 }
             }
         });

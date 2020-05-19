@@ -20,6 +20,8 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.PERMISSI
 
 public class PermissionsFragment extends Fragment {
 
+    public PermissionsFragment(){}
+
     public static boolean hasPermissions(Context context) {
         return Arrays.stream(PERMISSIONS_REQUIRED).allMatch( p -> {
             return ContextCompat.checkSelfPermission(context, p) == PackageManager.PERMISSION_GRANTED;
