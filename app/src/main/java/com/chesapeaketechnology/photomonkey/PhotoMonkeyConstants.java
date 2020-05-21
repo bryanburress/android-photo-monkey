@@ -32,9 +32,11 @@ public final class PhotoMonkeyConstants
         View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
 
     public static final int PERMISSIONS_REQUEST_CODE = 2;
-    public static final String[] PERMISSIONS_REQUIRED = new String[]{
+    public static final String[] PERMISSIONS_REQUIRED = {
             Manifest.permission.CAMERA,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION
     };
 
     public static final String KEY_EVENT_ACTION = "key_event_action";
@@ -49,4 +51,8 @@ public final class PhotoMonkeyConstants
     public static final List<String> EXTENSION_WHITELIST = Arrays.asList("JPG");
     public static final long ANIMATION_FAST_MILLIS = 50L;
     public static final long ANIMATION_SLOW_MILLIS = 100L;
+
+    public static final int LOCATION_REFRESH_TIME = 3000; // 3 seconds. The Minimum Time to get location update
+    public static final int LOCATION_REFRESH_DISTANCE = 30; // 30 meters. The Minimum Distance to be changed to get location update
+//    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 100;
 }

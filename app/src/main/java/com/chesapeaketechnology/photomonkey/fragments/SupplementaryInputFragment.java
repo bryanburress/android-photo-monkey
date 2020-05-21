@@ -2,10 +2,11 @@ package com.chesapeaketechnology.photomonkey.fragments;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
@@ -13,21 +14,24 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.chesapeaketechnology.photomonkey.R;
+import com.chesapeaketechnology.photomonkey.sdata.SupplementaryInputData;
+import com.chesapeaketechnology.photomonkey.sdata.SupplementaryInputDelegate;
 
 import java.util.ArrayList;
 
-public class DescriptionDialogFragment extends DialogFragment {
+public class SupplementaryInputFragment extends DialogFragment {
+    private static final String LOG_TAG = SupplementaryInputFragment.class.getSimpleName();
 
-    private ArrayList<DescriptionDialogResultListener> resultListeners = new ArrayList<DescriptionDialogResultListener>();
+    private ArrayList<SupplementaryInputDelegate> resultListeners = new ArrayList<SupplementaryInputDelegate>();
     AlertDialog dialog;
 
-    public void addListener(DescriptionDialogResultListener listener) {
+    public void addListener(SupplementaryInputDelegate listener) {
         //there can be only one
         resultListeners = new ArrayList<>();
         resultListeners.add(listener);
     }
 
-    public void removeListener(DescriptionDialogResultListener listener) {
+    public void removeListener(SupplementaryInputDelegate listener) {
         resultListeners.remove(listener);
     }
 
@@ -36,6 +40,19 @@ public class DescriptionDialogFragment extends DialogFragment {
 //        super.onCreate(savedInstanceState);
 //        setStyle(DialogFragment.STYLE_NORMAL, android.R.style.ThemeOverlay_Material_Dark);
 //    }
+
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+//        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        try {
+            getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        } catch (Exception e) {
+            Log.w(LOG_TAG, "Unable to set background for dialog", e);
+        }
+        return super.onCreateView(inflater, container, savedInstanceState);
+    }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -51,13 +68,9 @@ public class DescriptionDialogFragment extends DialogFragment {
                 .setTitle(getResources().getString(R.string.description_dialog_title))
                 .setPositiveButton(R.string.description_dialog_positive_button, (dialog, id) -> {
                     resultListeners.forEach(listener -> {
-                        listener.onSaveDescription(descriptionField.getText().toString());
+                        listener.receivedInput(new SupplementaryInputData(descriptionField.getText().toString()));
                     });
                 });
-//                .setNegativeButton(R.string.description_dialog_negative_button, (DialogInterface.OnClickListener) (dialog, id) -> {
-//                    DescriptionDialogFragment.this.getDialog().cancel();
-//                    resultListeners.forEach(DescriptionDialogResultListener::onCloseWithoutSaving);
-//                });
         return builder.create();
     }
 
