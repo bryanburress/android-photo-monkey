@@ -35,6 +35,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -43,7 +44,7 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.FLAGS_FU
 
 public class GalleryFragment extends Fragment {
     private GalleryFragmentArgs args;
-    private ArrayList<File> mediaList = new ArrayList<>();
+    private List<File> mediaList = new ArrayList<>();
 
     class MediaPagerAdapter extends FragmentStatePagerAdapter {
         public MediaPagerAdapter(FragmentManager fm) {
@@ -72,13 +73,14 @@ public class GalleryFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        args = GalleryFragmentArgs.fromBundle(requireArguments());
         setRetainInstance(true);
         if(args != null) {
             File rootDirectory = new File(args.getRootDirectory());
 
             // Walk through all files in the root directory
             // We reverse the order of the list to present the last photos first
-            ArrayList<File> files = (ArrayList<File>) Arrays.asList(Objects.requireNonNull(
+            List<File> files = (List<File>) Arrays.asList(Objects.requireNonNull(
                     rootDirectory.listFiles((dir, name) -> {
                         String extension = Files.getFileExtension(name);
                         return EXTENSION_WHITELIST.contains(extension.toUpperCase(Locale.ROOT));

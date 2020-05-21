@@ -40,7 +40,7 @@ public class PhotoFragment extends Fragment {
         }
     }
 
-    public static PhotoFragment create(File image) {
+    static PhotoFragment create(File image) {
         PhotoFragment frag = new PhotoFragment();
         Bundle arguments = new Bundle();
         arguments.putString(FILE_NAME_KEY, image.getAbsolutePath());

@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">Photo Monkey</string>
     <string name="image_view_content_description">The picture to save</string>
+    <string name="description_dialog_field_hint">A description of the picture</string>
+    <string name="description_dialog_title">Description</string>
+    <string name="description_dialog_positive_button">Save</string>
+    <string name="description_dialog_negative_button">Cancel</string>
     <string name="capture_button_alt">Capture</string>
     <string name="switch_camera_button_alt">Switch camera</string>
     <string name="gallery_button_alt">Gallery</string>

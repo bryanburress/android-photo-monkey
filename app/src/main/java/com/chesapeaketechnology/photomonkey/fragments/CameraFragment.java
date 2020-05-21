@@ -10,7 +10,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.DisplayManager.DisplayListener;
-import android.media.ExifInterface;
+import android.location.Location;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -22,7 +22,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -32,16 +31,14 @@ import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageCapture;
-import androidx.camera.core.ImageCaptureException;
-import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
-import androidx.camera.core.impl.ImageAnalysisConfig;
-import androidx.camera.core.impl.UseCaseConfig;
+
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.Navigation;
 
@@ -49,12 +46,15 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.chesapeaketechnology.photomonkey.PhotoMonkeyActivity;
 import com.chesapeaketechnology.photomonkey.R;
+import com.chesapeaketechnology.photomonkey.image.AsyncImageDataProvider;
+import com.chesapeaketechnology.photomonkey.image.ImageCaptureCallbackListener;
+import com.chesapeaketechnology.photomonkey.image.ImageDataResultListener;
+import com.chesapeaketechnology.photomonkey.image.ImageSavedListener;
+import com.chesapeaketechnology.photomonkey.util.LocationHelper;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FilenameFilter;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
@@ -84,6 +84,8 @@ public class CameraFragment extends Fragment {
     private ImageCapture imageCapture;
     private ImageAnalysis imageAnalyzer;
     private Camera camera;
+    private LocationHelper locationHelper;
+    private Location lastLocation;
 
     private int displayId = -1;
     private int lensFacing = CameraSelector.LENS_FACING_BACK;
@@ -128,7 +130,6 @@ public class CameraFragment extends Fragment {
             }
         }
     };
-
 
     @Nullable
     @Override
@@ -189,6 +190,11 @@ public class CameraFragment extends Fragment {
         cameraExecutor = Executors.newSingleThreadExecutor();
 
         broadcastManager = LocalBroadcastManager.getInstance(view.getContext());
+
+        locationHelper = new LocationHelper(view.getContext());
+        locationHelper.startListeningUserLocation(location -> {
+            lastLocation = location;
+        });
 
         // Set up the intent filter that will receive events from our main activity
         IntentFilter filter = new IntentFilter();
@@ -326,6 +332,14 @@ public class CameraFragment extends Fragment {
         return AspectRatio.RATIO_16_9;
     }
 
+    private void showDescriptionDialog(DescriptionDialogResultListener listener) {
+        FragmentManager fm = getParentFragmentManager();
+        DescriptionDialogFragment dialog = new DescriptionDialogFragment();
+        dialog.addListener(listener);
+        dialog.show(fm, "description_dialog_view");
+
+    }
+
     /** Method used to re-draw the camera UI controls, called every time configuration changes. */
     @SuppressLint("StaticFieldLeak")
     private void updateCameraUi() {
@@ -372,66 +386,56 @@ public class CameraFragment extends Fragment {
                 // Get a stable reference of the modifiable image capture use case
                 if (imageCapture != null) {
                     File photoFile = createFile(outputDirectory, FILENAME, PHOTO_EXTENSION);
-                    ImageCapture.Metadata metadata = new ImageCapture.Metadata();
-                    metadata.setReversedHorizontal((lensFacing == CameraSelector.LENS_FACING_FRONT));
+                    imageCapture.takePicture(cameraExecutor,
+                            new ImageCaptureCallbackListener(photoFile, lensFacing,
+                                new AsyncImageDataProvider() {
+                                    @Override
+                                    public void requestDescription(ImageDataResultListener resultListener) {
+                                          showDescriptionDialog(new DescriptionDialogResultListener() {
+                                            @Override
+                                            public void onSaveDescription(String description) {
+                                                Log.d(LOG_TAG, "Saved image adding a description");
+                                                resultListener.onData(description, lastLocation);
+                                            }
 
-                    ImageCapture.OutputFileOptions outputOptions = new ImageCapture.OutputFileOptions.Builder(photoFile)
-                            .setMetadata(metadata)
-                            .build();
+                                            @Override
+                                            public void onCloseWithoutSaving() {
+                                                Log.d(LOG_TAG, "Closed without adding a description");
+                                            }
+                                        });
+                                    }
+                                }, new ImageSavedListener() {
+                                    @Override
+                                    public void onSaved(File photoFile) {
+                                        Uri savedUri = Uri.fromFile(photoFile);
+                                        Log.d(LOG_TAG, String.format("Photo capture succeeded: %s", savedUri));
 
-//                    imageCapture.takePicture(cameraExecutor, new ImageCapture.OnImageCapturedCallback() {
-//                        @Override
-//                        public void onCaptureSuccess(@NonNull ImageProxy image) {
-//                            super.onCaptureSuccess(image);
-//                        }
-//
-//                        @Override
-//                        public void onError(@NonNull ImageCaptureException exception) {
-//                            super.onError(exception);
-//                        }
-//                    });
+                                        // We can only change the foreground Drawable using API level 23+ API
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                            setGalleryThumbnail(savedUri);
+                                        }
 
-                    imageCapture.takePicture(outputOptions, cameraExecutor, new ImageCapture.OnImageSavedCallback() {
-                        @Override
-                        public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
-                            Uri savedUri = outputFileResults.getSavedUri();
-                            if (savedUri == null) {
-                                savedUri = Uri.fromFile(photoFile);
-                            }
-                            Log.d(LOG_TAG, String.format("Photo capture succeeded: %s", savedUri));
+                                        // Implicit broadcasts will be ignored for devices running API level >= 24
+                                        // so if you only target API level 24+ you can remove this statement
+                                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                                            requireActivity().sendBroadcast(
+                                                    new Intent(android.hardware.Camera.ACTION_NEW_PICTURE, savedUri)
+                                            );
+                                        }
 
-                            // We can only change the foreground Drawable using API level 23+ API
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                setGalleryThumbnail(savedUri);
-                            }
-
-                            // Implicit broadcasts will be ignored for devices running API level >= 24
-                            // so if you only target API level 24+ you can remove this statement
-                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-                                requireActivity().sendBroadcast(
-                                        new Intent(android.hardware.Camera.ACTION_NEW_PICTURE, savedUri)
-                                );
-                            }
-
-                            // If the folder selected is an external media directory, this is
-                            // unnecessary but otherwise other apps will not be able to access our
-                            // images unless we scan them using [MediaScannerConnection]
-                            File savedFile = new File(savedUri.getPath());
-                            String extension = Files.getFileExtension(savedFile.getName());
-                            String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-                            MediaScannerConnection.scanFile(requireContext(), new String[]{savedFile.getAbsolutePath()}, new String[]{mimeType}, new MediaScannerConnection.OnScanCompletedListener() {
-                                @Override
-                                public void onScanCompleted(String path, Uri uri) {
-                                    Log.d(LOG_TAG, String.format("Image capture scanned into media store: %s", uri));
+                                        // If the folder selected is an external media directory, this is
+                                        // unnecessary but otherwise other apps will not be able to access our
+                                        // images unless we scan them using [MediaScannerConnection]
+                                        File savedFile = new File(savedUri.getPath());
+                                        String extension = Files.getFileExtension(savedFile.getName());
+                                        String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                                        MediaScannerConnection.scanFile(requireContext(), new String[]{savedFile.getAbsolutePath()}, new String[]{mimeType}, (path, uri) -> {
+                                            Log.d(LOG_TAG, String.format("Image capture scanned into media store: %s", uri));
+                                        });
+                                    }
                                 }
-                            });
-                        }
-
-                        @Override
-                        public void onError(@NonNull ImageCaptureException exception) {
-                            Log.e(LOG_TAG, String.format("Photo capture failed: %s", exception.getMessage()));
-                        }
-                    });
+                            )
+                    );
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         container.postDelayed(new Runnable() {
