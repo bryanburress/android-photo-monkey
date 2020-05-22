@@ -47,6 +47,7 @@ public class SupplementaryInputFragment extends DialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 //        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         try {
+            // TODO: 5/21/20 may need to adjust the button to have a background, may also need to make it only semi transparent
             getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         } catch (Exception e) {
             Log.w(LOG_TAG, "Unable to set background for dialog", e);

@@ -54,6 +54,7 @@ public class ImageCaptureCompletionDelegate extends ImageCapture.OnImageCaptured
     @Override
     public void onCaptureSuccess(@NonNull ImageProxy image) {
         try {
+            // TODO: 5/21/20 Add guard statements for ensuring it's a jpg
             // Save the image to private storage
             ImageSaver saver = new ImageSaver(image, this.photoFile);
             saver.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR).get();

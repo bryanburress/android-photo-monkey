@@ -32,12 +32,17 @@ public class LocationHelper {
     private static final String LOG_TAG = LocationHelper.class.getSimpleName();
     private static final int LOW_POWER_STEP_DOWN_MULTIPLIER = 10;
 
+    public enum LocationTrackingMode {
+        HIGH_ACCURACY,
+        LOW_POWER
+    }
+
     private Context context;
     private LocationUpdateDelegate delegate;
     private LocationManager locationManager;
     private LocationListener locationListener;
 
-    public static interface LocationUpdateDelegate {
+    public interface LocationUpdateDelegate {
         void locationUpdated(Location location);
     }
 
@@ -48,8 +53,8 @@ public class LocationHelper {
     private void deregister(){
         if (locationManager != null) {
             try {
-                if (ActivityCompat.checkSelfPermission(this.context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                        && ActivityCompat.checkSelfPermission(this.context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                        && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     return;
                 }
                 locationManager.removeUpdates(locationListener);
@@ -67,7 +72,7 @@ public class LocationHelper {
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(final Location location) {
-                LocationHelper.this.delegate.locationUpdated(location);
+                delegate.locationUpdated(location);
             }
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) { }
@@ -97,7 +102,7 @@ public class LocationHelper {
             if (ActivityCompat.shouldShowRequestPermissionRationale((Activity) context, Manifest.permission.ACCESS_FINE_LOCATION)
                     || ActivityCompat.shouldShowRequestPermissionRationale((Activity) context, Manifest.permission.ACCESS_COARSE_LOCATION)) {
                 Log.e(LOG_TAG, "Permission denied for location data.");
-                Toast.makeText(this.context, "Permission denied for location data.", Toast.LENGTH_LONG).show();
+                Toast.makeText(context, "Permission denied for location data.", Toast.LENGTH_LONG).show();
             } else {
                 ActivityCompat.requestPermissions((Activity) context,
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
@@ -114,13 +119,8 @@ public class LocationHelper {
     @Nullable
     public Location startUpdatingLocation(final LocationUpdateDelegate delegate) {
         this.delegate = delegate;
-
         locationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
-
-        Criteria criteria = new Criteria();
-        criteria.setAccuracy(Criteria.ACCURACY_FINE);
-        criteria.setAccuracy(Criteria.ACCURACY_HIGH);
-        criteria.setCostAllowed(true);
+        Criteria criteria = getCriteria(LocationTrackingMode.HIGH_ACCURACY);
         return register(criteria, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE);
     }
 
@@ -130,8 +130,8 @@ public class LocationHelper {
     public void stopUpdatingLocation(){
         if (locationManager != null) {
             try {
-                if (ActivityCompat.checkSelfPermission(this.context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                        && ActivityCompat.checkSelfPermission(this.context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                        && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     return;
                 }
                 locationManager.removeUpdates(locationListener);
@@ -145,25 +145,38 @@ public class LocationHelper {
         }
     }
 
-    public @Nullable Location switchToHighAccuracyMode(){
-        deregister();
+    private Criteria getCriteria(LocationTrackingMode mode) {
         Criteria criteria = new Criteria();
-        criteria.setAccuracy(Criteria.ACCURACY_FINE);
-        criteria.setAccuracy(Criteria.ACCURACY_HIGH);
-        criteria.setCostAllowed(true);
-        Log.i(LOG_TAG, "Switching to high accuracy location tracking.");
-        return register(criteria, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE);
+        switch(mode) {
+            case HIGH_ACCURACY:
+                criteria.setAccuracy(Criteria.ACCURACY_FINE);
+                criteria.setCostAllowed(true);
+                criteria.setAltitudeRequired(true);
+                criteria.setBearingRequired(true);
+                criteria.setSpeedRequired(true);
+                break;
+            case LOW_POWER:
+                criteria.setAccuracy(Criteria.POWER_LOW);
+                criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+                criteria.setCostAllowed(false);
+                break;
+        }
+        return criteria;
     }
 
-    public @Nullable Location switchToPowerConservationMode(){
+    private int getStepDownMultiplier(LocationTrackingMode mode) {
+        if (mode == LocationTrackingMode.LOW_POWER) {
+            return LOW_POWER_STEP_DOWN_MULTIPLIER;
+        }
+        return 1;
+    }
+
+    public @Nullable Location switchTo(LocationTrackingMode mode){
         deregister();
-        Criteria criteria = new Criteria();
-        criteria.setAccuracy(Criteria.POWER_LOW);
-        criteria.setAccuracy(Criteria.ACCURACY_COARSE);
-        criteria.setCostAllowed(true);
-        Log.i(LOG_TAG, "Switching to coarse grained, low power, location tracking.");
+        Criteria criteria = getCriteria(mode);
+        Log.i(LOG_TAG, String.format("Switching to location tracking mode %s.", mode.name()));
         return register(criteria,
-                LOCATION_REFRESH_TIME * LOW_POWER_STEP_DOWN_MULTIPLIER,
-                LOCATION_REFRESH_DISTANCE * LOW_POWER_STEP_DOWN_MULTIPLIER);
+                LOCATION_REFRESH_TIME * (long) getStepDownMultiplier(mode),
+                LOCATION_REFRESH_DISTANCE * (float) getStepDownMultiplier(mode));
     }
 }

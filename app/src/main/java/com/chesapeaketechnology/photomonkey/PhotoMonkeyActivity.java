@@ -75,7 +75,7 @@ public class PhotoMonkeyActivity extends AppCompatActivity implements LocationUp
                 });
             });
         } else {
-            locationHelper.switchToHighAccuracyMode();
+            locationHelper.switchTo(LocationHelper.LocationTrackingMode.HIGH_ACCURACY);
         }
 
         container.postDelayed(new Runnable() {
@@ -90,7 +90,7 @@ public class PhotoMonkeyActivity extends AppCompatActivity implements LocationUp
     protected void onStop() {
         super.onStop();
         if(locationHelper != null) {
-            locationHelper.switchToPowerConservationMode();
+            locationHelper.switchTo(LocationHelper.LocationTrackingMode.LOW_POWER);
         }
     }
 

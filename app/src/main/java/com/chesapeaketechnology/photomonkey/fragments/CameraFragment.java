@@ -102,7 +102,7 @@ public class CameraFragment extends Fragment implements LocationUpdateListener {
         return (DisplayManager)requireContext().getSystemService(Context.DISPLAY_SERVICE);
     }
 
-    private BroadcastReceiver volumeDownReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver volumeDownReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             takePicture();
@@ -261,7 +261,7 @@ public class CameraFragment extends Fragment implements LocationUpdateListener {
                              // Set initial target rotation
                              .setTargetRotation(rotation)
                              .build();
-
+// TODO: 5/21/20 verify that I am specifying the correct modes to ensure jpg
                      // ImageCapture
                      imageCapture = new ImageCapture.Builder()
                              .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
@@ -285,7 +285,7 @@ public class CameraFragment extends Fragment implements LocationUpdateListener {
                              // The analyzer can then be assigned to the instance
 //                     ImageAnalysisConfig imgAConfig = new androidx.camera.core.impl.ImageAnalysisConfig.Builder()
                              //.setImageReaderMode(ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE).build();
-
+// TODO: 5/21/20 remove analyzer
                      imageAnalyzer.setAnalyzer(cameraExecutor, image -> {
                          int rotationDegrees = image.getImageInfo().getRotationDegrees();
                             // insert your code here.
@@ -419,6 +419,7 @@ public class CameraFragment extends Fragment implements LocationUpdateListener {
         });
     }
 
+    // TODO: 5/21/20 Make sure that the picture taken is being displayed in the background until the dialog is dismissed.
     private void takePicture() {
         // Get a stable reference of the modifiable image capture use case
         if (imageCapture != null) {
