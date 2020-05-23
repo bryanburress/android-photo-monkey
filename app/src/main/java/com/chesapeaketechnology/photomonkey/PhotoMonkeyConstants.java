@@ -55,4 +55,7 @@ public final class PhotoMonkeyConstants
     public static final int LOCATION_REFRESH_TIME = 3000; // 3 seconds. The Minimum Time to get location update
     public static final int LOCATION_REFRESH_DISTANCE = 30; // 30 meters. The Minimum Distance to be changed to get location update
 //    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 100;
+
+    public static final int SINGLE_FILE_IO_TIMEOUT = 5; //in seconds
+    public static final int MULTI_FILE_IO_TIMEOUT = 30; //in seconds
 }

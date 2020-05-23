@@ -1,4 +1,4 @@
-package com.chesapeaketechnology.photomonkey.fragments;
+package com.chesapeaketechnology.photomonkey.view;
 
 import android.content.Context;
 import android.content.pm.PackageManager;

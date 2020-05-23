@@ -7,13 +7,18 @@ import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.OnLifecycleEvent;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -28,8 +33,8 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.PERMISSI
  *
  * @since 0.1.0
  */
-public class LocationHelper {
-    private static final String LOG_TAG = LocationHelper.class.getSimpleName();
+public class LocationManager implements LifecycleObserver {
+    private static final String TAG = LocationManager.class.getSimpleName();
     private static final int LOW_POWER_STEP_DOWN_MULTIPLIER = 10;
 
     public enum LocationTrackingMode {
@@ -37,17 +42,47 @@ public class LocationHelper {
         LOW_POWER
     }
 
-    private Context context;
-    private LocationUpdateDelegate delegate;
-    private LocationManager locationManager;
+    private final Context context;
+    private final Lifecycle lifecycle;
+    private android.location.LocationManager locationManager;
     private LocationListener locationListener;
+    private List<LocationUpdateListener> updateListeners = new ArrayList<>();
 
-    public interface LocationUpdateDelegate {
-        void locationUpdated(Location location);
+    public LocationManager(Context context, Lifecycle lifecycle) {
+        this.context = context;
+        this.lifecycle = lifecycle;
+        lifecycle.addObserver(this);
     }
 
-    public LocationHelper(Context context) {
-        this.context = context;
+    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
+    void create(){
+        locationManager = (android.location.LocationManager) context.getSystemService(LOCATION_SERVICE);
+        Criteria criteria = getCriteria(LocationTrackingMode.LOW_POWER);
+        register(criteria, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE);
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    void resume(){
+        switchTo(LocationManager.LocationTrackingMode.HIGH_ACCURACY);
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+    void pause(){
+        // TODO: 5/23/20 Do I need to slow down the updates on pause?
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+    void stop(){
+        switchTo(LocationManager.LocationTrackingMode.LOW_POWER);
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+    void destroy(){
+        lifecycle.removeObserver(this);
+        deregister();
+        locationListener = null;
+        locationManager = null;
+        updateListeners = new ArrayList<>();
     }
 
     private void deregister(){
@@ -59,11 +94,7 @@ public class LocationHelper {
                 }
                 locationManager.removeUpdates(locationListener);
             } catch (Exception ex) {
-                Log.w(LOG_TAG, "Failed to remove location listener", ex);
-            } finally {
-                locationListener = null;
-                delegate = null;
-                locationManager = null;
+                Log.w(TAG, "Failed to remove location listener", ex);
             }
         }
     }
@@ -72,7 +103,9 @@ public class LocationHelper {
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(final Location location) {
-                delegate.locationUpdated(location);
+                updateListeners.forEach(listener -> {
+                    listener.locationUpdated(location);
+                });
             }
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) { }
@@ -88,7 +121,7 @@ public class LocationHelper {
         {
             if (locationManager != null) {
                 String provider = locationManager.getBestProvider(criteria, true);
-                if(provider == null) provider = LocationManager.GPS_PROVIDER;
+                if(provider == null) provider = android.location.LocationManager.GPS_PROVIDER;
 
                 locationManager.requestLocationUpdates(provider,
                         minTime,
@@ -96,12 +129,12 @@ public class LocationHelper {
                         locationListener);
 
                 // return the last known location for an initial value.
-                return locationManager.getLastKnownLocation(provider);
+//                return locationManager.getLastKnownLocation(provider);
             }
         } else {
             if (ActivityCompat.shouldShowRequestPermissionRationale((Activity) context, Manifest.permission.ACCESS_FINE_LOCATION)
                     || ActivityCompat.shouldShowRequestPermissionRationale((Activity) context, Manifest.permission.ACCESS_COARSE_LOCATION)) {
-                Log.e(LOG_TAG, "Permission denied for location data.");
+                Log.e(TAG, "Permission denied for location data.");
                 Toast.makeText(context, "Permission denied for location data.", Toast.LENGTH_LONG).show();
             } else {
                 ActivityCompat.requestPermissions((Activity) context,
@@ -112,38 +145,34 @@ public class LocationHelper {
         return null;
     }
 
-    /**
-     * Start the LocationManager and send updates to the provided delegate.
-     * @param delegate Accepts location updates
-     */
-    @Nullable
-    public Location startUpdatingLocation(final LocationUpdateDelegate delegate) {
-        this.delegate = delegate;
-        locationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
-        Criteria criteria = getCriteria(LocationTrackingMode.HIGH_ACCURACY);
-        return register(criteria, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE);
+    public void addUpdateListener(LocationUpdateListener listener) {
+        updateListeners.add(listener);
     }
 
-    /**
-     * Deregister any listeners from the location service.
-     */
-    public void stopUpdatingLocation(){
-        if (locationManager != null) {
-            try {
-                if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                        && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    return;
-                }
-                locationManager.removeUpdates(locationListener);
-            } catch (Exception ex) {
-                Log.w(LOG_TAG, "Failed to remove location listener", ex);
-            } finally {
-                locationListener = null;
-                delegate = null;
-                locationManager = null;
-            }
-        }
+    public void removeUpdateListener(LocationUpdateListener listener) {
+        updateListeners.remove(listener);
     }
+
+//    /**
+//     * Deregister any listeners from the location service.
+//     */
+//    public void stopUpdatingLocation(){
+//        if (locationManager != null) {
+//            try {
+//                if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+//                        && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//                    return;
+//                }
+//                locationManager.removeUpdates(locationListener);
+//            } catch (Exception ex) {
+//                Log.w(TAG, "Failed to remove location listener", ex);
+//            } finally {
+//                locationListener = null;
+//                delegate = null;
+//                locationManager = null;
+//            }
+//        }
+//    }
 
     private Criteria getCriteria(LocationTrackingMode mode) {
         Criteria criteria = new Criteria();
@@ -174,7 +203,7 @@ public class LocationHelper {
     public @Nullable Location switchTo(LocationTrackingMode mode){
         deregister();
         Criteria criteria = getCriteria(mode);
-        Log.i(LOG_TAG, String.format("Switching to location tracking mode %s.", mode.name()));
+        Log.i(TAG, String.format("Switching to location tracking mode %s.", mode.name()));
         return register(criteria,
                 LOCATION_REFRESH_TIME * (long) getStepDownMultiplier(mode),
                 LOCATION_REFRESH_DISTANCE * (float) getStepDownMultiplier(mode));

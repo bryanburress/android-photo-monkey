@@ -9,6 +9,7 @@
     <string name="switch_camera_button_alt">Switch camera</string>
     <string name="gallery_button_alt">Gallery</string>
     <string name="back_button_alt">Back</string>
+    <string name="close_button_alt">Close</string>
     <string name="share_button_alt">Share</string>
     <string name="share_hint">Share using</string>
     <string name="capture_mode_camera">Camera</string>
@@ -20,4 +21,6 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="picture_taken">Picture Taken</string>
+    <string name="save_button">Save</string>
 </resources>

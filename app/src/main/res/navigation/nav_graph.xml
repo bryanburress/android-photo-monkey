@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/permissionsFragment"
-        android:name="com.chesapeaketechnology.photomonkey.fragments.PermissionsFragment"
+        android:name="com.chesapeaketechnology.photomonkey.view.PermissionsFragment"
         android:label="PermissionsFragment" >
         <action
             android:id="@+id/action_permissionsFragment_to_cameraFragment"
@@ -17,7 +17,7 @@
     </fragment>
     <fragment
         android:id="@+id/cameraFragment"
-        android:name="com.chesapeaketechnology.photomonkey.fragments.CameraFragment"
+        android:name="com.chesapeaketechnology.photomonkey.view.CameraFragment"
         android:label="CameraFragment" >
         <action
             android:id="@+id/action_cameraFragment_to_permissionsFragment"
@@ -27,14 +27,31 @@
         <action
             android:id="@+id/action_cameraFragment_to_galleryFragment"
             app:destination="@id/galleryFragment" />
+        <action
+            android:id="@+id/action_cameraFragment_to_supplementaryInputFragment"
+            app:destination="@id/supplementaryInputFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_close_exit"
+            app:popEnterAnim="@anim/fragment_open_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
     <fragment
         android:id="@+id/galleryFragment"
-        android:name="com.chesapeaketechnology.photomonkey.fragments.GalleryFragment"
+        android:name="com.chesapeaketechnology.photomonkey.view.GalleryFragment"
         android:label="gallery_view"
-        tools:layout="@layout/gallery_view" >
+        tools:layout="@layout/fragment_gallery" >
         <argument
             android:name="rootDirectory"
             app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/supplementaryInputFragment"
+        android:name="com.chesapeaketechnology.photomonkey.view.SupplementaryInputFragment"
+        android:label="SupplementaryInputFragment" >
+        <action
+            android:id="@+id/action_supplementaryInputFragment_to_cameraFragment"
+            app:destination="@id/cameraFragment"
+            app:popEnterAnim="@anim/fragment_open_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
     </fragment>
 </navigation>

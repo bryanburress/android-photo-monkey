@@ -1,4 +1,4 @@
-package com.chesapeaketechnology.photomonkey.fragments;
+package com.chesapeaketechnology.photomonkey.view;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
