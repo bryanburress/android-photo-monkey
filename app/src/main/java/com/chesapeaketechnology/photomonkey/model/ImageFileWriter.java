@@ -1,6 +1,7 @@
 package com.chesapeaketechnology.photomonkey.model;
 
 import android.graphics.ImageFormat;
+import android.net.Uri;
 import android.util.Log;
 
 import androidx.camera.core.ImageProxy;
@@ -19,14 +20,19 @@ import java.util.concurrent.TimeoutException;
 
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.SINGLE_FILE_IO_TIMEOUT;
 
-public class ImageFileWriter implements ImageWriter {
+public class ImageFileWriter extends ImageWriter {
     private static final String TAG = ImageFileWriter.class.getSimpleName();
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
-    private final File toFile;
+//    private final File toFile;
+    private final FileNameGenerator fileNameGenerator;
 
-    public ImageFileWriter(File toFile){
-        this.toFile = toFile;
+//    public ImageFileWriter(File toFile){
+//        this.toFile = toFile;
+//    }
+
+    public ImageFileWriter(FileNameGenerator fileNameGenerator) {
+        this.fileNameGenerator = fileNameGenerator;
     }
 
     /**
@@ -34,10 +40,12 @@ public class ImageFileWriter implements ImageWriter {
      * Currently, only supports {@link ImageFormat#JPEG}
      * @param image the {@link ImageProxy} to write
      *
+     * @return
      */
     @Override
-    public void write(ImageProxy image) throws WriteException, FormatNotSupportedException {
+    public Uri write(ImageProxy image) throws FormatNotSupportedException, WriteException {
         if (image.getFormat() == ImageFormat.JPEG) {
+            File toFile = fileNameGenerator.generate();
             try {
                 Callable<Void> writeTask = () -> {
                     ByteBuffer buffer = image.getPlanes()[0].getBuffer();
@@ -46,28 +54,19 @@ public class ImageFileWriter implements ImageWriter {
 
                     byte[] data = new byte[buffer.capacity()];
                     buffer.get(data);
-                    FileOutputStream output = null;
-                    try {
-                        output = new FileOutputStream(toFile);
+                    try (FileOutputStream output = new FileOutputStream(toFile)){
                         output.write(data);
                     } catch (IOException e) {
                         Log.e(TAG, "Error writing image data to file", e);
                     } finally {
                         image.close();
-                        if (null != output) {
-                            try {
-                                output.close();
-                            } catch (IOException e) {
-                                Log.e(TAG, "Error writing closing image data file", e);
-                            }
-                        }
                     }
                     return null;
                 };
 
                 Future<Void> result = executorService.submit(writeTask);
                 result.get(SINGLE_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
-
+                return Uri.fromFile(toFile);
             } catch (ExecutionException | InterruptedException | TimeoutException e) {
                 throw new WriteException("Unable to save image", e.getCause());
             }
@@ -77,19 +76,4 @@ public class ImageFileWriter implements ImageWriter {
 
     }
 
-    public static class FormatNotSupportedException extends Exception {
-        public FormatNotSupportedException(String message) {
-            super(message);
-        }
-    }
-
-    public static class WriteException extends Exception {
-        public WriteException(String message) {
-            super(message);
-        }
-
-        public WriteException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
 }

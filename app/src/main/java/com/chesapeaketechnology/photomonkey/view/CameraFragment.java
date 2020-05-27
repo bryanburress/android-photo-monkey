@@ -41,34 +41,24 @@ import androidx.navigation.Navigation;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.chesapeaketechnology.photomonkey.PhotoMonkeyActivity;
 import com.chesapeaketechnology.photomonkey.R;
 import com.chesapeaketechnology.photomonkey.loc.LocationManager;
 import com.chesapeaketechnology.photomonkey.loc.LocationManagerProvider;
+import com.chesapeaketechnology.photomonkey.model.GalleryManager;
 import com.chesapeaketechnology.photomonkey.model.Image;
 import com.chesapeaketechnology.photomonkey.model.ImageFileWriter;
 import com.chesapeaketechnology.photomonkey.model.MetadataDelegate;
-import com.google.common.io.Files;
+import com.chesapeaketechnology.photomonkey.model.PublicationDelegate;
+import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.ListenableFuture;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.ANIMATION_FAST_MILLIS;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.ANIMATION_SLOW_MILLIS;
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.EXTENSION_WHITELIST;
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.FILENAME;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.KEY_EVENT_ACTION;
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.MULTI_FILE_IO_TIMEOUT;
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.PHOTO_EXTENSION;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.RATIO_16_9_VALUE;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.RATIO_4_3_VALUE;
 import static java.lang.Integer.max;
@@ -80,7 +70,6 @@ public class CameraFragment extends Fragment {
     private static final String TAG = CameraFragment.class.getSimpleName();
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
-    private File outputDirectory;
     private LocalBroadcastManager broadcastManager;
     private ConstraintLayout container;
     private PreviewView viewFinder;
@@ -115,7 +104,7 @@ public class CameraFragment extends Fragment {
      */
 
     private final CameraFragment this_fragment = this;
-    private DisplayListener displayListener = new DisplayListener() {
+    private final DisplayListener displayListener = new DisplayListener() {
         @Override
         public void onDisplayAdded(int displayId) {}
 
@@ -124,7 +113,7 @@ public class CameraFragment extends Fragment {
 
         @Override
         public void onDisplayChanged(int displayId) {
-            if (displayId ==this_fragment.displayId) {
+            if (displayId == this_fragment.displayId) {
                 Log.d(TAG, String.format("Rotation changed: %d",
                         requireView().getDisplay().getRotation()));
                 if (imageCapture != null) imageCapture.setTargetRotation(requireView().getDisplay().getRotation());
@@ -173,10 +162,14 @@ public class CameraFragment extends Fragment {
         thumbnail.post(new Runnable() {
             @Override
             public void run() {
+                Uri imageUri = uri;
+                if (imageUri.getScheme() == null) {
+                    imageUri = Uri.parse("file://" + imageUri.getPath());
+                }
                 int dimension = (int) getResources().getDimension(R.dimen.stroke_small);
                 thumbnail.setPadding(dimension, dimension, dimension, dimension);
                 Glide.with(thumbnail)
-                        .load(uri)
+                        .load(imageUri)
                         .apply(RequestOptions.circleCropTransform())
                         .into(thumbnail);
             }
@@ -207,22 +200,16 @@ public class CameraFragment extends Fragment {
         // Every time the orientation of device changes, update rotation for use cases
         getDisplayManager().registerDisplayListener(displayListener, null);
 
-        // Determine the output directory
-        outputDirectory = PhotoMonkeyActivity.getOutputDirectory(requireContext());
-
         // Wait for the views to be properly laid out
-        viewFinder.post(new Runnable() {
-            @Override
-            public void run() {
-                // Keep track of the display in which this view is attached
-                int displayId = viewFinder.getDisplay().getDisplayId();
+        viewFinder.post(() -> {
+            // Keep track of the display in which this view is attached
+            displayId = viewFinder.getDisplay().getDisplayId();
 
-                // Build UI controls
-                updateCameraUi();
+            // Build UI controls
+            updateCameraUi();
 
-                // Bind use cases
-                bindCameraUseCases();
-            }
+            // Bind use cases
+            bindCameraUseCases();
         });
     }
 
@@ -288,7 +275,9 @@ public class CameraFragment extends Fragment {
                }
             } catch (ExecutionException | InterruptedException e) {
                 Log.e(TAG, "bindCameraUseCases: Unable to get camera provider", e);
-                Toast.makeText(requireContext(), String.format("Unable to get camera provider. %s", e.getMessage()), Toast.LENGTH_SHORT).show();
+                viewFinder.post(() -> {
+                    Toast.makeText(requireContext(), String.format("Unable to get camera provider. %s", e.getMessage()), Toast.LENGTH_SHORT).show();
+                });
             }
 
        }, ContextCompat.getMainExecutor(requireContext()));
@@ -328,61 +317,48 @@ public class CameraFragment extends Fragment {
 
         // In the background, load latest photo taken (if any) for gallery thumbnail
         try {
-            Callable<File[]> backgroundTask = () -> {
-                if (outputDirectory != null) {
-                    return outputDirectory.listFiles((dir, name) -> {
-                        String extension = Files.getFileExtension(name);
-                        return EXTENSION_WHITELIST.contains(extension.toUpperCase(Locale.ROOT));
-                    });
-                } else {
-                    return null;
-                }
-            };
-            Future<File[]> result = executorService.submit(backgroundTask);
-            File[] files = result.get(MULTI_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
-            if (files != null && files.length > 0) {
-                File lastFile = files[files.length - 1];
-                setGalleryThumbnail(Uri.fromFile(lastFile));
+            Uri latestUri = new GalleryManager().getLatest();
+            if (latestUri != null) {
+                setGalleryThumbnail(latestUri);
             }
-        } catch (ExecutionException | InterruptedException | TimeoutException e) {
+        } catch (GalleryManager.GalleryAccessFailure e) {
             Log.e(TAG, "updateCameraUi: Unable to find existing images.", e);
-            Toast.makeText(requireContext(), String.format("Unable to find existing images. %s", e.getCause().getMessage()), Toast.LENGTH_SHORT).show();
+            Throwable rootCause = Throwables.getRootCause(e);
+            viewFinder.post(() -> {
+                Toast.makeText(requireContext(), String.format("Unable to find existing images. %s", rootCause.getMessage()), Toast.LENGTH_SHORT).show();
+            });
         }
 
         // Listener for button used to capture photo
-        controls.findViewById(R.id.camera_capture_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                takePicture();
-            }
-        });
+        controls.findViewById(R.id.camera_capture_button).setOnClickListener(v -> takePicture());
 
 
         // Listener for button used to switch cameras
-        controls.findViewById(R.id.camera_switch_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (CameraSelector.LENS_FACING_FRONT == lensFacing) {
-                    lensFacing = CameraSelector.LENS_FACING_BACK;
-                } else {
-                    lensFacing = CameraSelector.LENS_FACING_FRONT;
-                }
-                // Re-bind use cases to update selected camera
-                bindCameraUseCases();
+        controls.findViewById(R.id.camera_switch_button).setOnClickListener(v -> {
+            if (CameraSelector.LENS_FACING_FRONT == lensFacing) {
+                lensFacing = CameraSelector.LENS_FACING_BACK;
+            } else {
+                lensFacing = CameraSelector.LENS_FACING_FRONT;
             }
+            // Re-bind use cases to update selected camera
+            bindCameraUseCases();
         });
 
         // Listener for button used to view the most recent photo
-        controls.findViewById(R.id.photo_view_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Only navigate when the gallery has photos
-                File[] fileList = outputDirectory.listFiles();
-                if (fileList != null && fileList.length > 0) {
-                    //TODO: - Add the gallery view
+        controls.findViewById(R.id.photo_view_button).setOnClickListener(v -> {
+            // Only navigate when the gallery has photos
+            GalleryManager galleryManager = new GalleryManager();
+            try {
+                if(! galleryManager.isEmpty()){
                     Navigation.findNavController(requireActivity(), R.id.fragment_container)
-                            .navigate(CameraFragmentDirections.actionCameraFragmentToGalleryFragment(outputDirectory.getAbsolutePath()));
+                            .navigate(CameraFragmentDirections.actionCameraFragmentToGalleryFragment());
                 }
+            } catch (GalleryManager.GalleryAccessFailure galleryAccessFailure) {
+                Log.e(TAG, "updateCameraUi: Unable to find existing images.", galleryAccessFailure);
+                Throwable rootCause = Throwables.getRootCause(galleryAccessFailure);
+                viewFinder.post(() -> {
+                    Toast.makeText(requireContext(), String.format("Unable to find existing images. %s", rootCause.getMessage()), Toast.LENGTH_SHORT).show();
+                });
             }
         });
     }
@@ -390,41 +366,47 @@ public class CameraFragment extends Fragment {
     private void takePicture() {
         // Get a stable reference of the modifiable image capture use case
         if (imageCapture != null) {
-            File photoFile = createFile(outputDirectory, FILENAME, PHOTO_EXTENSION);
             imageCapture.takePicture(cameraExecutor,
                     new ImageCapture.OnImageCapturedCallback() {
                         @Override
                         public void onCaptureSuccess(@NonNull ImageProxy imageProxy) {
-                            Image image = null;
+                            Image image;
                             try {
-                                image = Image.create(imageProxy, photoFile);
+                                image = Image.create(imageProxy);
                                 viewModel.setImage(image);
                                 // if the current value of lensFacing is front, then the image is horizontally reversed.
                                 viewModel.setReversed((lensFacing == CameraSelector.LENS_FACING_FRONT));
-                                Uri savedUri = Uri.fromFile(image.getFile());
+                                Uri savedUri = image.getUri();
                                 Log.d(TAG, String.format("Photo capture succeeded: %s", savedUri));
                                 // We can only change the foreground Drawable using API level 23+ API
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                     setGalleryThumbnail(savedUri);
                                 }
-
-                                // TODO: 5/23/20 Add publish support
                                 image.publish();
-
                                 Navigation.findNavController(requireActivity(), R.id.fragment_container)
                                         .navigate(CameraFragmentDirections.actionCameraFragmentToSupplementaryInputFragment());
-
                             } catch (ImageFileWriter.FormatNotSupportedException unlikely) {
                                 // OnCaptureSuccess doc says "The image is of format ImageFormat.JPEG". So, this should never happen.
                                 // https://developer.android.com/reference/androidx/camera/core/ImageCapture.OnImageCapturedListener#onCaptureSuccess(androidx.camera.core.ImageProxy,%20int)
-                                Log.wtf(TAG, "onCaptureSuccess: Format not supported.", unlikely);
-                                Toast.makeText(requireContext(), String.format("Camera capture format not supported. %s", unlikely.getMessage()), Toast.LENGTH_LONG).show();
+                                Log.wtf(TAG, "Format not supported.", unlikely);
+                                viewFinder.post(() -> {
+                                    Toast.makeText(requireContext(), String.format("Camera capture format not supported. %s", unlikely.getMessage()), Toast.LENGTH_LONG).show();
+                                });
                             } catch (ImageFileWriter.WriteException writeException) {
-                                Log.e(TAG, "onCaptureSuccess: Unable to save image.", writeException);
-                                Toast.makeText(requireContext(), String.format("Unable to save image. %s", writeException.getMessage()), Toast.LENGTH_LONG).show();
+                                Log.e(TAG, "Unable to save image.", writeException);
+                                viewFinder.post(() -> {
+                                    Toast.makeText(requireContext(), String.format("Unable to save image. %s", writeException.getMessage()), Toast.LENGTH_LONG).show();
+                                });
                             } catch (MetadataDelegate.ReadFailure readFailure) {
-                                Log.w(TAG, "onCaptureSuccess: Unable to read image metadata.", readFailure);
-                                Toast.makeText(requireContext(), String.format("Unable to read image metadata. %s", readFailure.getMessage()), Toast.LENGTH_SHORT).show();
+                                Log.w(TAG, "Unable to read image metadata.", readFailure);
+                                viewFinder.post(() -> {
+                                    Toast.makeText(requireContext(), String.format("Unable to read image metadata. %s", readFailure.getMessage()), Toast.LENGTH_SHORT).show();
+                                });
+                            } catch (PublicationDelegate.PublicationFailure publicationFailure) {
+                                Log.e(TAG, "Unable to publish image.", publicationFailure);
+                                viewFinder.post(() -> {
+                                    Toast.makeText(requireContext(), String.format("Unable to publish image. %s", publicationFailure.getMessage()), Toast.LENGTH_LONG).show();
+                                });
                             } finally {
                                 imageProxy.close();
                             }
@@ -433,29 +415,24 @@ public class CameraFragment extends Fragment {
                         @Override
                         public void onError(@NonNull ImageCaptureException exception) {
                             Log.e(TAG, "onError: Unable to capture image.", exception);
-                            Toast.makeText(requireContext(), String.format("Unable to capture image. %s", exception.getMessage()), Toast.LENGTH_SHORT).show();
+                            viewFinder.post(() -> {
+                                Toast.makeText(requireContext(), String.format("Unable to capture image. %s", exception.getMessage()), Toast.LENGTH_SHORT).show();
+                            });
                         }
                     }
             );
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                container.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        container.setForeground(new ColorDrawable(Color.WHITE));
-                        container.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                container.setForeground(null);
-                            }
-                        }, ANIMATION_FAST_MILLIS);
-                    }
+                container.postDelayed(() -> {
+                    container.setForeground(new ColorDrawable(Color.WHITE));
+                    container.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            container.setForeground(null);
+                        }
+                    }, ANIMATION_FAST_MILLIS);
                 }, ANIMATION_SLOW_MILLIS);
             }
         }
-    }
-
-    private static File createFile(File baseFolder, String format, String extension) {
-        return new File(baseFolder, new SimpleDateFormat(format, Locale.US).format(System.currentTimeMillis()) + extension);
     }
 }

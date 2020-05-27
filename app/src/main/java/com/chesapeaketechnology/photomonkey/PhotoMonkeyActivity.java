@@ -34,17 +34,18 @@ public class PhotoMonkeyActivity extends AppCompatActivity implements LocationMa
     private FrameLayout container;
     private LocationManager locationManager;
 
-    public static File getOutputDirectory(Context context) {
-        Context appContext = context.getApplicationContext();
-        File[] mediaDirs = context.getExternalMediaDirs();
-        if ( mediaDirs != null && mediaDirs.length > 0 ) {
-            File mediaDir = Arrays.stream(mediaDirs).filter(Objects::nonNull).findFirst().orElse(null);
-            if (mediaDir != null && mediaDir.exists()) {
-                return mediaDir;
-            }
-        }
-        return appContext.getFilesDir();
-    }
+
+//    public static File getOutputDirectory(Context context) {
+//        Context appContext = context.getApplicationContext();
+//        File[] mediaDirs = context.getExternalMediaDirs();
+//        if ( mediaDirs != null && mediaDirs.length > 0 ) {
+//            File mediaDir = Arrays.stream(mediaDirs).filter(Objects::nonNull).findFirst().orElse(null);
+//            if (mediaDir != null && mediaDir.exists()) {
+//                return mediaDir;
+//            }
+//        }
+//        return appContext.getFilesDir();
+//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,20 +57,15 @@ public class PhotoMonkeyActivity extends AppCompatActivity implements LocationMa
     @Override
     protected void onResume() {
         super.onResume();
-        container.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                container.setSystemUiVisibility(FLAGS_FULLSCREEN);
-            }
-        }, IMMERSIVE_FLAG_TIMEOUT);
+        container.postDelayed(() -> container.setSystemUiVisibility(FLAGS_FULLSCREEN), IMMERSIVE_FLAG_TIMEOUT);
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        // Capture volume down hardware button and ensure it is forwarded to fragements.
+        // Capture volume down hardware button and ensure it is forwarded to fragments.
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             Intent intent = new Intent(KEY_EVENT_ACTION);
-            intent = intent.putExtra(KEY_EVENT_EXTRA, keyCode);
+            intent = intent.putExtra(KEY_EVENT_EXTRA, KeyEvent.KEYCODE_VOLUME_DOWN);
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
             return true;
         }

@@ -2,6 +2,8 @@ package com.chesapeaketechnology.photomonkey.model;
 
 import android.location.Location;
 
+import androidx.annotation.NonNull;
+
 public class Metadata {
     private Location location;
     private boolean reversed;
@@ -40,7 +42,7 @@ public class Metadata {
     }
 
     @Override
-    public String toString() {
+    public @NonNull String toString() {
         return "Metadata{" +
                 "location=" + location +
                 ", reversed=" + reversed +

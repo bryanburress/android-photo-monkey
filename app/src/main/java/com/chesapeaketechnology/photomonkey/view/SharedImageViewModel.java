@@ -8,8 +8,6 @@ import com.chesapeaketechnology.photomonkey.loc.LocationManager;
 import com.chesapeaketechnology.photomonkey.loc.LocationUpdateListener;
 import com.chesapeaketechnology.photomonkey.model.Image;
 
-import java.io.File;
-
 public class SharedImageViewModel extends ViewModel implements LocationUpdateListener {
     private Image image;
     private LocationManager locationManager;

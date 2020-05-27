@@ -1,5 +1,6 @@
 package com.chesapeaketechnology.photomonkey.view;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,19 +32,22 @@ public class PhotoFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         Bundle args = getArguments();
         if(args == null) return;
-        File resource = new File(args.getString(FILE_NAME_KEY));
-        if (resource == null) {
-            int resource_id = R.drawable.ic_photo;
-            Glide.with(view).load(resource_id).into((ImageView) view);
+        String path = args.getString(FILE_NAME_KEY);
+        Uri imageUri = Uri.parse(path);
+        if (imageUri.getScheme() == null) {
+            imageUri = Uri.parse("file://" + imageUri.getPath());
+        }
+        if (imageUri == null) {
+            Glide.with(view).load(R.drawable.ic_photo).centerCrop().into((ImageView) view);
         } else {
-            Glide.with(view).load(resource).into((ImageView) view);
+            Glide.with(view).load(imageUri).centerCrop().into((ImageView) view);
         }
     }
 
-    static PhotoFragment create(File image) {
+    static PhotoFragment create(Uri imageUri) {
         PhotoFragment frag = new PhotoFragment();
         Bundle arguments = new Bundle();
-        arguments.putString(FILE_NAME_KEY, image.getAbsolutePath());
+        arguments.putString(FILE_NAME_KEY, imageUri.getPath());
         frag.setArguments(arguments);
         return frag;
     }

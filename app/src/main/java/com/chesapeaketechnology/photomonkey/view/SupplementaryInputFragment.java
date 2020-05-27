@@ -1,5 +1,6 @@
 package com.chesapeaketechnology.photomonkey.view;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -38,17 +39,24 @@ public class SupplementaryInputFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         SharedImageViewModel model = new ViewModelProvider(requireActivity()).get(SharedImageViewModel.class);
+        EditText descriptionField = view.findViewById(R.id.descriptionField);
         if (model.getImage() != null) {
             ImageView imageView = view.findViewById(R.id.backgroundPreview);
+            Uri imageUri = model.getImage().getUri();
+            if (imageUri.getScheme() == null) {
+                imageUri = Uri.parse("file://" + imageUri.getPath());
+            }
             Glide.with(this)
-                    .load(model.getImage().getFile().getAbsolutePath())
+                    .load(imageUri)
                     .skipMemoryCache(true)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .fitCenter()
                     .into(imageView);
+            String description = model.getImage().getMetadata().getDescription();
+            if(!TextUtils.isEmpty(description)){
+                descriptionField.setText(description);
+            }
         }
-
-        EditText descriptionField = view.findViewById(R.id.descriptionField);
         view.findViewById(R.id.saveButton).setOnClickListener(e -> {
             try {
                 String description = descriptionField.getText().toString();
@@ -57,8 +65,8 @@ public class SupplementaryInputFragment extends Fragment {
                         Image image = model.getImage().updateMetadata(metadata);
                         model.setImage(image);
                 }
-//                Navigation.findNavController(requireActivity(), R.id.fragment_container).popBackStack();
                 Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp();
+                descriptionField.setText("");
             } catch (MetadataDelegate.SaveFailure mse) {
                 Log.e(TAG, "onViewCreated: Unable to save metadata.", mse);
                 Toast.makeText(requireContext(), String.format("Unable to save metadata. %s", mse.getMessage()), Toast.LENGTH_LONG).show();
@@ -67,6 +75,8 @@ public class SupplementaryInputFragment extends Fragment {
 
         view.findViewById(R.id.close_button).setOnClickListener(v -> {
             Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp();
+            descriptionField.setText("");
         });
     }
+
 }

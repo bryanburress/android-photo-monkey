@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/permissionsFragment"
         android:name="com.chesapeaketechnology.photomonkey.view.PermissionsFragment"
-        android:label="PermissionsFragment" >
+        android:label="PermissionsFragment">
         <action
             android:id="@+id/action_permissionsFragment_to_cameraFragment"
             app:destination="@id/cameraFragment"
@@ -40,9 +40,9 @@
         android:name="com.chesapeaketechnology.photomonkey.view.GalleryFragment"
         android:label="gallery_view"
         tools:layout="@layout/fragment_gallery" >
-        <argument
-            android:name="rootDirectory"
-            app:argType="string" />
+        <action
+            android:id="@+id/action_galleryFragment_to_supplementaryInputFragment"
+            app:destination="@id/supplementaryInputFragment" />
     </fragment>
     <fragment
         android:id="@+id/supplementaryInputFragment"

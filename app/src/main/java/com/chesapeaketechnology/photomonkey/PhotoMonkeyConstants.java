@@ -4,7 +4,7 @@ import android.Manifest;
 import android.view.View;
 
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public final class PhotoMonkeyConstants
@@ -23,7 +23,7 @@ public final class PhotoMonkeyConstants
      */
     public static final String PHOTO_MONKEY_PHOTO_NAME_PREFIX = "PM_";
 
-    public static int FLAGS_FULLSCREEN =
+    public static final int FLAGS_FULLSCREEN =
         View.SYSTEM_UI_FLAG_LOW_PROFILE |
         View.SYSTEM_UI_FLAG_FULLSCREEN |
         View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
@@ -36,7 +36,8 @@ public final class PhotoMonkeyConstants
             Manifest.permission.CAMERA,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.READ_EXTERNAL_STORAGE
     };
 
     public static final String KEY_EVENT_ACTION = "key_event_action";
@@ -48,7 +49,7 @@ public final class PhotoMonkeyConstants
     public static final String PHOTO_EXTENSION = ".jpg";
     public static final double RATIO_4_3_VALUE = 4.0 / 3.0;
     public static final double RATIO_16_9_VALUE = 16.0 / 9.0;
-    public static final List<String> EXTENSION_WHITELIST = Arrays.asList("JPG");
+    public static final List<String> EXTENSION_WHITELIST = Collections.singletonList("JPG");
     public static final long ANIMATION_FAST_MILLIS = 50L;
     public static final long ANIMATION_SLOW_MILLIS = 100L;
 
@@ -56,6 +57,10 @@ public final class PhotoMonkeyConstants
     public static final int LOCATION_REFRESH_DISTANCE = 30; // 30 meters. The Minimum Distance to be changed to get location update
 //    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 100;
 
-    public static final int SINGLE_FILE_IO_TIMEOUT = 5; //in seconds
+    public static final int SINGLE_FILE_IO_TIMEOUT = 10; //in seconds
     public static final int MULTI_FILE_IO_TIMEOUT = 30; //in seconds
+
+    public static final String SYNC_MONKEY_ACTION = "com.chesapeaketechnology.sycnmonkey.action.SEND_FILE_NO_UI";
+    public static final String SYNC_MONKEY_PACKAGE = "com.chesapeaketechnology.syncmonkey";
+    public static final String SYNC_MONKEY_SHARING_ACTIVITY_CLASS = "com.chesapeaketechnology.syncmonkey.SharingActivity";
 }

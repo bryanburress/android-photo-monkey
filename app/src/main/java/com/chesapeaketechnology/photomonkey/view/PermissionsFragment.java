@@ -32,14 +32,13 @@ public class PermissionsFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (!hasPermissions(requireContext())) {
-            requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE);
-        } else {
+        if (hasPermissions(requireContext())) {
             Navigation.findNavController(requireActivity(), R.id.fragment_container).navigate(
                     PermissionsFragmentDirections.actionPermissionsFragmentToCameraFragment()
             );
+        } else {
+            requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE);
         }
-
     }
 
     @Override
