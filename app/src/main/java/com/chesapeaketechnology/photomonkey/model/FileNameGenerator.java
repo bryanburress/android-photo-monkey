@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.chesapeaketechnology.photomonkey.PhotoMonkeyApplication;
+import com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -17,10 +18,10 @@ import java.util.Objects;
  * Provides tools for generating new file names and finding the path where they should be
  * written or read.
  *
- * @since 0.1.0
+ * @since 0.2.0
  */
 public class FileNameGenerator {
-    public static final String PREFIX = "PM_";
+    public static final String PREFIX = PhotoMonkeyConstants.PHOTO_MONKEY_PHOTO_NAME_PREFIX;
     public static final String FILE_NAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS";
     public static final String VOLUME = "PhotoMonkey";
     public static final String EXTENSION = ".jpg";

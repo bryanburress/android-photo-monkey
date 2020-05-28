@@ -31,7 +31,7 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.PERMISSI
  * Automatically switches to low power mode when the app is in the background
  * and to high accuracy mode when the app is in the foreground.
  *
- * @since 0.1.0
+ * @since 0.2.0
  */
 public class LocationManager implements LifecycleObserver {
     private static final String TAG = LocationManager.class.getSimpleName();

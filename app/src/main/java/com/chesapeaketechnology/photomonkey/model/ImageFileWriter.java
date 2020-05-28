@@ -24,7 +24,7 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.SINGLE_F
  * Write an {@link ImageProxy} to the external media directory.  This is a file system
  * write operation that bypasses media APIs.
  *
- * @since 0.1.0
+ * @since 0.2.0
  */
 public class ImageFileWriter extends ImageWriter {
     private static final String TAG = ImageFileWriter.class.getSimpleName();

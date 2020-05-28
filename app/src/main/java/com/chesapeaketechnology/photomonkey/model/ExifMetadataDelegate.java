@@ -21,7 +21,7 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.SINGLE_F
  * Provides functionality for  EXIF data access and manipulation for image files
  * in the External Media Dir ({@link Context#getExternalMediaDirs()})
  *
- * @since 0.1.0
+ * @since 0.2.0
  */
 public class ExifMetadataDelegate extends MetadataDelegate {
     private static final String TAG = ExifMetadataDelegate.class.getSimpleName();

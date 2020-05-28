@@ -1,14 +1,11 @@
 package com.chesapeaketechnology.photomonkey.model;
 
 import android.content.ContentResolver;
-import android.content.Context;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 
 import androidx.exifinterface.media.ExifInterface;
-
-import com.chesapeaketechnology.photomonkey.PhotoMonkeyApplication;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -24,20 +22,23 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyApplication.getContext;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.SINGLE_FILE_IO_TIMEOUT;
 
 /**
  * Provides functionality for  EXIF data access and manipulation for image files
  * in the stored in the directory defined by ({@link MediaStore#VOLUME_EXTERNAL_PRIMARY}
  * (likely the /Pictures folder).
- * @since 0.1.0
+ *
+ * @since 0.2.0
  */
-public class ExifMetadataMediaStoreDelegate extends  ExifMetadataDelegate {
+public class ExifMetadataMediaStoreDelegate extends ExifMetadataDelegate {
     private static final String TAG = ExifMetadataDelegate.class.getSimpleName();
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     /**
      * Save the provided metadata to the image.
+     *
      * @param metadata
      * @param forImage
      * @throws SaveFailure
@@ -48,14 +49,14 @@ public class ExifMetadataMediaStoreDelegate extends  ExifMetadataDelegate {
             Callable<Void> backgroundTask = () -> {
                 Uri uri = forImage.getUri();
                 ExifInterface exif;
-                if("content".equals(uri.getScheme())) {
-                    ContentResolver resolver = PhotoMonkeyApplication.getContext().getContentResolver();
+                if ("content".equals(uri.getScheme())) {
+                    ContentResolver resolver = getContext().getContentResolver();
                     try (InputStream in = resolver.openInputStream(uri)) {
                         File tempFile = writeToTempFile(in);
                         exif = new ExifInterface(tempFile.getAbsolutePath());
                         writeData(metadata, exif);
                         try (OutputStream out = resolver.openOutputStream(uri, "rw")) {
-                            Files.copy(tempFile.toPath(), out);
+                            Files.copy(tempFile.toPath(), Objects.requireNonNull(out));
                         }
                         tempFile.delete();
                     }
@@ -76,6 +77,7 @@ public class ExifMetadataMediaStoreDelegate extends  ExifMetadataDelegate {
 
     /**
      * Read the EXIF data from the image into a Metadata object.
+     *
      * @param fromImage
      * @return
      * @throws ReadFailure
@@ -86,10 +88,10 @@ public class ExifMetadataMediaStoreDelegate extends  ExifMetadataDelegate {
             Callable<Metadata> backgroundTask = () -> {
                 Uri uri = fromImage.getUri();
                 ExifInterface exif;
-                if("content".equals(uri.getScheme())) {
-                    ContentResolver resolver = PhotoMonkeyApplication.getContext().getContentResolver();
-                    try(InputStream in = resolver.openInputStream(uri)) {
-                        exif = new ExifInterface(in);
+                if ("content".equals(uri.getScheme())) {
+                    ContentResolver resolver = getContext().getContentResolver();
+                    try (InputStream in = resolver.openInputStream(uri)) {
+                        exif = new ExifInterface(Objects.requireNonNull(in));
                         return readData(exif);
                     }
                 } else {
@@ -106,9 +108,9 @@ public class ExifMetadataMediaStoreDelegate extends  ExifMetadataDelegate {
     }
 
     private File writeToTempFile(InputStream in) throws IOException {
-        File outputDir = PhotoMonkeyApplication.getContext().getExternalCacheDir();
+        File outputDir = getContext().getExternalCacheDir();
         File tempFile = File.createTempFile("tmp_", ".jpg", outputDir);
-        tempFile.deleteOnExit();
+        Log.d(TAG, String.format("writeToTempFile: %s", tempFile.getAbsolutePath()));
         Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         return tempFile;
     }

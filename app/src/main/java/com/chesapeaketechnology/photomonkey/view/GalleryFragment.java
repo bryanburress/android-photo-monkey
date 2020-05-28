@@ -30,7 +30,6 @@ import com.chesapeaketechnology.photomonkey.BuildConfig;
 import com.chesapeaketechnology.photomonkey.R;
 import com.chesapeaketechnology.photomonkey.model.GalleryManager;
 import com.chesapeaketechnology.photomonkey.model.Image;
-import com.chesapeaketechnology.photomonkey.model.ImageWriter;
 import com.chesapeaketechnology.photomonkey.model.MetadataDelegate;
 import com.chesapeaketechnology.photomonkey.model.PublicationDelegate;
 import com.google.common.base.Throwables;
@@ -45,13 +44,13 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.FLAGS_FU
 
 /**
  * Fragment responsible for allowing users to see, edit, delete, and share existing photos.
- * @since 0.1.0
+ *
+ * @since 0.2.0
  */
 public class GalleryFragment extends Fragment {
     private static final String TAG = GalleryFragment.class.getSimpleName();
-
-    private List<Uri> mediaList = new ArrayList<>();
     private final GalleryManager galleryManager;
+    private List<Uri> mediaList = new ArrayList<>();
 
     public GalleryFragment() {
         galleryManager = new GalleryManager();
@@ -131,6 +130,7 @@ public class GalleryFragment extends Fragment {
                 Intent intent = new Intent();
                 // Infer media type from file extension
                 File mediaFile = new File(mediaUri.getPath());
+                //noinspection UnstableApiUsage
                 String extension = Files.getFileExtension(mediaFile.getName());
                 String mediaType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
                 Uri uri = FileProvider.getUriForFile(view.getContext(), BuildConfig.APPLICATION_ID + ".provider", mediaFile);
@@ -156,7 +156,7 @@ public class GalleryFragment extends Fragment {
                 model.setImage(img);
                 Navigation.findNavController(requireActivity(), R.id.fragment_container)
                         .navigate(GalleryFragmentDirections.actionGalleryFragmentToSupplementaryInputFragment());
-            } catch (ImageWriter.FormatNotSupportedException | ImageWriter.WriteException | MetadataDelegate.ReadFailure e) {
+            } catch (MetadataDelegate.ReadFailure e) {
                 Log.e(TAG, String.format("Unable to edit photo. %s", e.getMessage()), e);
                 view.post(() -> {
                     Toast.makeText(requireContext(), String.format("Unable to edit photo. %s", e.getMessage()), Toast.LENGTH_LONG).show();
@@ -170,7 +170,7 @@ public class GalleryFragment extends Fragment {
             try {
                 Image img = Image.create(mediaUri);
                 img.publish();
-            } catch (ImageWriter.FormatNotSupportedException | ImageWriter.WriteException | MetadataDelegate.ReadFailure | PublicationDelegate.PublicationFailure e) {
+            } catch (MetadataDelegate.ReadFailure | PublicationDelegate.PublicationFailure e) {
                 Log.e(TAG, String.format("Unable to publish photo. %s", e.getMessage()), e);
                 view.post(() -> {
                     Toast.makeText(requireContext(), String.format("Unable to publish photo. %s", e.getMessage()), Toast.LENGTH_LONG).show();
@@ -182,11 +182,11 @@ public class GalleryFragment extends Fragment {
         view.findViewById(R.id.delete_button).setOnClickListener(v -> {
             Uri mediaUri = mediaList.get(mediaViewPager.getCurrentItem());
             if (mediaUri != null) {
-                AlertDialog dialog = new AlertDialog.Builder(view.getContext(), android.R.style.Theme_Material_Dialog)
+                AlertDialog dialog = new AlertDialog.Builder(view.getContext(), R.style.AlertDialogTheme)
                         .setTitle("Confirm")
                         .setMessage("Delete current photo?")
                         .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setPositiveButton(android.R.string.yes, (_dialog, which) -> {
+                        .setPositiveButton(R.string.delete_button_alt, (_dialog, which) -> {
                             try {
                                 galleryManager.delete(mediaUri);
                                 // Clean out the image from internal list and pager
@@ -220,7 +220,8 @@ public class GalleryFragment extends Fragment {
 
     /**
      * Paging adapter for the images in the gallery
-     * @since 0.1.0
+     *
+     * @since 0.2.0
      */
     class MediaPagerAdapter extends FragmentStatePagerAdapter {
         public MediaPagerAdapter(FragmentManager fm) {

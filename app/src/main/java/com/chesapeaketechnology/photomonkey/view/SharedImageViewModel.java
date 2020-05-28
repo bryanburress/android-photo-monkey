@@ -8,6 +8,11 @@ import com.chesapeaketechnology.photomonkey.loc.LocationManager;
 import com.chesapeaketechnology.photomonkey.loc.LocationUpdateListener;
 import com.chesapeaketechnology.photomonkey.model.Image;
 
+/**
+ * Used to share data between the various {@link androidx.fragment.app.Fragment}s.
+ *
+ * @since 0.2.0
+ */
 public class SharedImageViewModel extends ViewModel implements LocationUpdateListener {
     private Image image;
     private LocationManager locationManager;

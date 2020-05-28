@@ -6,8 +6,7 @@ import android.provider.MediaStore;
 
 import androidx.camera.core.ImageProxy;
 
-import com.chesapeaketechnology.photomonkey.PhotoMonkeyApplication;
-import com.chesapeaketechnology.photomonkey.PhotoMonkeyConfig;
+import com.chesapeaketechnology.photomonkey.PhotoMonkeyFeatures;
 
 import java.io.File;
 import java.util.Objects;
@@ -17,10 +16,9 @@ import java.util.Objects;
  * functionality for operating on images, and encapsulates any differences between
  * the {@link MediaStore} and external media store {@link Context#getExternalMediaDirs()}.
  *
- * @since 0.1.0
+ * @since 0.2.0
  */
 public class Image {
-    private static final String TAG = Image.class.getSimpleName();
     private final MetadataDelegate metadataDelegate;
     private final PublicationDelegate publicationDelegate;
     private Uri uri;
@@ -39,7 +37,7 @@ public class Image {
     /**
      * Create an {@link Image} object from an {@link ImageProxy}. Uses the
      * default {@link ImageWriter} and {@link MetadataDelegate} for the configured
-     * media store ({@link PhotoMonkeyConfig#USE_EXTERNAL_MEDIA_DIR}) to persist the
+     * media store ({@link PhotoMonkeyFeatures#USE_EXTERNAL_MEDIA_DIR}) to persist the
      * image and save the associated {@link Metadata}.
      *
      * @param image The ImageProxy object
@@ -53,8 +51,7 @@ public class Image {
             MetadataDelegate.ReadFailure {
         ImageWriter writer;
         MetadataDelegate mdd;
-        Context context = PhotoMonkeyApplication.getContext();
-        if (PhotoMonkeyConfig.USE_EXTERNAL_MEDIA_DIR) {
+        if (PhotoMonkeyFeatures.USE_EXTERNAL_MEDIA_DIR) {
             writer = new ImageFileWriter(new FileNameGenerator());
             mdd = MetadataDelegate.defaultMetadataDelegate();
         } else {
@@ -67,20 +64,16 @@ public class Image {
     /**
      * Create an {@link Image} object from a {@link Uri} for an image that already exists
      * in storage. Uses the default {@link ImageWriter} and {@link MetadataDelegate} for
-     * the configured media store ({@link PhotoMonkeyConfig#USE_EXTERNAL_MEDIA_DIR}) to populate
+     * the configured media store ({@link PhotoMonkeyFeatures#USE_EXTERNAL_MEDIA_DIR}) to populate
      * the object.
      *
      * @param imageUri the location of the image
      * @return an Image object
-     * @throws ImageWriter.FormatNotSupportedException If the image parameter is not a JPG.
-     * @throws ImageWriter.WriteException              If we are unable to write metadata to the image.
      * @throws MetadataDelegate.ReadFailure            If we are unable to read metadata from the image.
      */
-    public static Image create(Uri imageUri)
-            throws ImageWriter.FormatNotSupportedException, ImageWriter.WriteException,
-            MetadataDelegate.ReadFailure {
+    public static Image create(Uri imageUri) throws MetadataDelegate.ReadFailure {
         MetadataDelegate mdd;
-        if (PhotoMonkeyConfig.USE_EXTERNAL_MEDIA_DIR) {
+        if (PhotoMonkeyFeatures.USE_EXTERNAL_MEDIA_DIR) {
             mdd = MetadataDelegate.defaultMetadataDelegate();
         } else {
             mdd = new ExifMetadataMediaStoreDelegate();
@@ -158,11 +151,11 @@ public class Image {
      * @throws PublicationDelegate.PublicationFailure
      */
     public void publish() throws PublicationDelegate.PublicationFailure {
-        if (PhotoMonkeyConfig.USE_EXTERNAL_MEDIA_DIR) {
+        if (PhotoMonkeyFeatures.USE_EXTERNAL_MEDIA_DIR) {
             publicationDelegate.makeAvailableToOtherApps(this);
         }
 
-        if (PhotoMonkeyConfig.AUTOMATIC_SEND_TO_SYNC_MONKEY) {
+        if (PhotoMonkeyFeatures.AUTOMATIC_SEND_TO_SYNC_MONKEY) {
             publicationDelegate.sendToSyncMonkey(this);
         }
     }

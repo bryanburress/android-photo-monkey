@@ -24,10 +24,18 @@ import com.chesapeaketechnology.photomonkey.model.Image;
 import com.chesapeaketechnology.photomonkey.model.Metadata;
 import com.chesapeaketechnology.photomonkey.model.MetadataDelegate;
 
+/**
+ * Provides the necessary form elements for capturing supplementary data about an image
+ * from a user. It populates the resulting data into the shared view model as a
+ * new {@link Metadata} object.
+ *
+ * @since 0.2.0
+ */
 public class SupplementaryInputFragment extends Fragment {
     private static final String TAG = SupplementaryInputFragment.class.getSimpleName();
 
-    public SupplementaryInputFragment(){}
+    public SupplementaryInputFragment() {
+    }
 
     @Nullable
     @Override
@@ -50,23 +58,24 @@ public class SupplementaryInputFragment extends Fragment {
                     .load(imageUri)
                     .skipMemoryCache(true)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .fitCenter()
+                    .centerCrop()
                     .into(imageView);
             String description = model.getImage().getMetadata().getDescription();
-            if(!TextUtils.isEmpty(description)){
+            if (!TextUtils.isEmpty(description)) {
                 descriptionField.setText(description);
+            } else {
+                descriptionField.setText("");
             }
         }
         view.findViewById(R.id.saveButton).setOnClickListener(e -> {
             try {
                 String description = descriptionField.getText().toString();
-                if( ! TextUtils.isEmpty(description)){
-                        Metadata metadata = new Metadata(description, model.getLastLocation(), model.isReversed());
-                        Image image = model.getImage().updateMetadata(metadata);
-                        model.setImage(image);
+                if (!TextUtils.isEmpty(description)) {
+                    Metadata metadata = new Metadata(description, model.getLastLocation(), model.isReversed());
+                    Image image = model.getImage().updateMetadata(metadata);
+                    model.setImage(image);
                 }
                 Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp();
-                descriptionField.setText("");
             } catch (MetadataDelegate.SaveFailure mse) {
                 Log.e(TAG, "onViewCreated: Unable to save metadata.", mse);
                 Toast.makeText(requireContext(), String.format("Unable to save metadata. %s", mse.getMessage()), Toast.LENGTH_LONG).show();
@@ -75,7 +84,6 @@ public class SupplementaryInputFragment extends Fragment {
 
         view.findViewById(R.id.close_button).setOnClickListener(v -> {
             Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp();
-            descriptionField.setText("");
         });
     }
 

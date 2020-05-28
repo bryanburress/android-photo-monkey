@@ -14,12 +14,24 @@ import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.chesapeaketechnology.photomonkey.R;
 
-import java.io.File;
-
+/**
+ * Down samples, scales, and loads the provided image uri into an ImageView
+ *
+ * @since 0.2.0
+ */
 public class PhotoFragment extends Fragment {
     public static final String FILE_NAME_KEY = "file_name";
 
-    public PhotoFragment(){}
+    public PhotoFragment() {
+    }
+
+    static PhotoFragment create(Uri imageUri) {
+        PhotoFragment frag = new PhotoFragment();
+        Bundle arguments = new Bundle();
+        arguments.putString(FILE_NAME_KEY, imageUri.toString());
+        frag.setArguments(arguments);
+        return frag;
+    }
 
     @Nullable
     @Override
@@ -31,7 +43,7 @@ public class PhotoFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Bundle args = getArguments();
-        if(args == null) return;
+        if (args == null) return;
         String path = args.getString(FILE_NAME_KEY);
         Uri imageUri = Uri.parse(path);
         if (imageUri.getScheme() == null) {
@@ -42,13 +54,5 @@ public class PhotoFragment extends Fragment {
         } else {
             Glide.with(view).load(imageUri).centerCrop().into((ImageView) view);
         }
-    }
-
-    static PhotoFragment create(Uri imageUri) {
-        PhotoFragment frag = new PhotoFragment();
-        Bundle arguments = new Bundle();
-        arguments.putString(FILE_NAME_KEY, imageUri.getPath());
-        frag.setArguments(arguments);
-        return frag;
     }
 }

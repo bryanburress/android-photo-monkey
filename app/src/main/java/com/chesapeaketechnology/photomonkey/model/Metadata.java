@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 /**
  * The metedata for an image
  *
- * @since 0.1.0
+ * @since 0.2.0
  */
 public class Metadata {
     private Location location;

@@ -18,12 +18,18 @@ import java.util.Arrays;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.PERMISSIONS_REQUEST_CODE;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.PERMISSIONS_REQUIRED;
 
+/**
+ * Verifies that the necessary permissions are present and navigates back to the {@link CameraFragment}.
+ *
+ * @since 0.2.0
+ */
 public class PermissionsFragment extends Fragment {
 
-    public PermissionsFragment(){}
+    public PermissionsFragment() {
+    }
 
     public static boolean hasPermissions(Context context) {
-        return Arrays.stream(PERMISSIONS_REQUIRED).allMatch( p -> {
+        return Arrays.stream(PERMISSIONS_REQUIRED).allMatch(p -> {
             return ContextCompat.checkSelfPermission(context, p) == PackageManager.PERMISSION_GRANTED;
         });
     }

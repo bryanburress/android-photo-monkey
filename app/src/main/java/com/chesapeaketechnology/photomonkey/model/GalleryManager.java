@@ -1,6 +1,7 @@
 package com.chesapeaketechnology.photomonkey.model;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.media.MediaScannerConnection;
@@ -8,7 +9,7 @@ import android.net.Uri;
 import android.provider.MediaStore;
 
 import com.chesapeaketechnology.photomonkey.PhotoMonkeyApplication;
-import com.chesapeaketechnology.photomonkey.PhotoMonkeyConfig;
+import com.chesapeaketechnology.photomonkey.PhotoMonkeyFeatures;
 import com.google.common.io.Files;
 
 import java.io.File;
@@ -34,10 +35,9 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.MULTI_FI
  * Provides access and management of the media stored in the external media
  * directory {@link Context#getExternalMediaDirs()}  or in the {@link }MediaStore}
  *
- * @since 0.1.0
+ * @since 0.2.0
  */
 public class GalleryManager {
-    private static final String TAG = GalleryManager.class.getSimpleName();
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     public GalleryManager() {
@@ -68,8 +68,7 @@ public class GalleryManager {
             Future<List<Uri>> result = executorService.submit(backgroundTask);
             List<Uri> mediaList = result.get(MULTI_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
             if (mediaList != null && !mediaList.isEmpty()) {
-                Uri lastUri = mediaList.get(mediaList.size() - 1);
-                return lastUri;
+                return mediaList.get(mediaList.size() - 1);
             }
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
             throw new GalleryAccessFailure("Unable to get latest image from gallery", e);
@@ -90,8 +89,7 @@ public class GalleryManager {
                 return getMediaUris();
             };
             Future<List<Uri>> result = executorService.submit(backgroundTask);
-            List<Uri> mediaList = result.get(MULTI_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
-            return mediaList;
+            return result.get(MULTI_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
             throw new GalleryAccessFailure("Unable to get latest image from gallery", e);
         }
@@ -104,7 +102,7 @@ public class GalleryManager {
      * @return a list of image Uris.
      */
     private List<Uri> getMediaUris() {
-        if (PhotoMonkeyConfig.USE_EXTERNAL_MEDIA_DIR) {
+        if (PhotoMonkeyFeatures.USE_EXTERNAL_MEDIA_DIR) {
             File rootDirectory = new FileNameGenerator().getRootDirectory();
             // Walk through all files in the root directory
             List<File> files = Arrays.asList(Objects.requireNonNull(
@@ -121,28 +119,33 @@ public class GalleryManager {
             List<Uri> uris = new ArrayList<>();
             ContentResolver resolver = PhotoMonkeyApplication.getContext().getContentResolver();
             Cursor cursor = null;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                cursor = resolver.query(
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                        null,
-                        null,
-                        null,
-                        MediaStore.Images.ImageColumns.DATE_TAKEN + " DESC");
-            } else {
-                cursor = resolver.query(
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                        null,
-                        null,
-                        null,
-                        MediaStore.Images.ImageColumns.DATE_MODIFIED + " DESC");
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    cursor = resolver.query(
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                            null,
+                            null,
+                            null,
+                            MediaStore.Images.ImageColumns.DATE_TAKEN + " DESC");
+                } else {
+                    cursor = resolver.query(
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                            null,
+                            null,
+                            null,
+                            MediaStore.Images.ImageColumns.DATE_MODIFIED + " DESC");
+                }
+                cursor.moveToFirst();
+                while (!cursor.isAfterLast()) {
+                    //                String real_path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+                    Uri contentUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Images.ImageColumns._ID)));
+                    uris.add(contentUri);
+                    cursor.moveToNext();
+                }
+            } finally {
+                if(cursor != null)
+                    cursor.close();
             }
-            cursor.moveToFirst();
-            while (!cursor.isAfterLast()) {
-                String path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
-                uris.add(Uri.parse(path));
-                cursor.moveToNext();
-            }
-            cursor.close();
             return uris.stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
         }
     }
@@ -156,7 +159,7 @@ public class GalleryManager {
      */
     public boolean delete(Uri mediaUri) throws GalleryDeleteFailure {
         Context context = PhotoMonkeyApplication.getContext();
-        if (PhotoMonkeyConfig.USE_EXTERNAL_MEDIA_DIR) {
+        if (PhotoMonkeyFeatures.USE_EXTERNAL_MEDIA_DIR || mediaUri.getScheme() == null) {
             File mediaFile = new File(mediaUri.getPath());
             boolean deleted = mediaFile.delete();
             if (!deleted) {
@@ -173,7 +176,7 @@ public class GalleryManager {
         return true;
     }
 
-    public class GalleryAccessFailure extends Exception {
+    public static class GalleryAccessFailure extends Exception {
         public GalleryAccessFailure(String message) {
             super(message);
         }
@@ -183,7 +186,7 @@ public class GalleryManager {
         }
     }
 
-    public class GalleryDeleteFailure extends Exception {
+    public static class GalleryDeleteFailure extends Exception {
         public GalleryDeleteFailure(String message) {
             super(message);
         }

@@ -3,7 +3,7 @@ package com.chesapeaketechnology.photomonkey.model;
 /**
  * Encapsulates functionality related to reading and writing the metadata related to an image.
  *
- * @since 0.1.0
+ * @since 0.2.0
  */
 public abstract class MetadataDelegate {
 

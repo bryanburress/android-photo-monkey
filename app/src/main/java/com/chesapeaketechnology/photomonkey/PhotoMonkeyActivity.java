@@ -1,6 +1,5 @@
 package com.chesapeaketechnology.photomonkey;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -12,10 +11,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.chesapeaketechnology.photomonkey.loc.LocationManager;
 import com.chesapeaketechnology.photomonkey.loc.LocationManagerProvider;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Objects;
-
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.FLAGS_FULLSCREEN;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.IMMERSIVE_FLAG_TIMEOUT;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.KEY_EVENT_ACTION;
@@ -23,29 +18,14 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.KEY_EVEN
 
 
 /**
- * The main activity for the Photo Monkey app.  This activity first launches the Android device's default camera app,
- * and once the user takes a picture they are shown the picture to add any details.
+ * The main activity for the Photo Monkey app. This activity acts as a holder for a series of
+ * fragments that facilitate taking pictures, editing metadata, and managing assets.
  *
- * @since 0.1.0
+ * @since 0.2.0
  */
-public class PhotoMonkeyActivity extends AppCompatActivity implements LocationManagerProvider
-{
-    private static final String TAG = PhotoMonkeyActivity.class.getSimpleName();
+public class PhotoMonkeyActivity extends AppCompatActivity implements LocationManagerProvider {
     private FrameLayout container;
     private LocationManager locationManager;
-
-
-//    public static File getOutputDirectory(Context context) {
-//        Context appContext = context.getApplicationContext();
-//        File[] mediaDirs = context.getExternalMediaDirs();
-//        if ( mediaDirs != null && mediaDirs.length > 0 ) {
-//            File mediaDir = Arrays.stream(mediaDirs).filter(Objects::nonNull).findFirst().orElse(null);
-//            if (mediaDir != null && mediaDir.exists()) {
-//                return mediaDir;
-//            }
-//        }
-//        return appContext.getFilesDir();
-//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

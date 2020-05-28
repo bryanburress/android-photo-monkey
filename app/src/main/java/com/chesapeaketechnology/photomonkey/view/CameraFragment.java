@@ -66,9 +66,11 @@ import static java.lang.Integer.min;
 import static java.lang.Math.abs;
 
 /**
- * User interface fragment responsible for providing a view finder and capturing pictures.
+ * User interface fragment responsible for providing a view finder and capturing pictures. This is
+ * the primary view for the application. It manages setting up, controlling, and capturing images
+ * from the devices camera.
  *
- * @since 0.1.0
+ * @since 0.2.0
  */
 public class CameraFragment extends Fragment {
     private static final String TAG = CameraFragment.class.getSimpleName();
@@ -398,7 +400,14 @@ public class CameraFragment extends Fragment {
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                     setGalleryThumbnail(savedUri);
                                 }
-                                image.publish();
+                                try {
+                                    image.publish();
+                                } catch (PublicationDelegate.PublicationFailure publicationFailure) {
+                                    Log.e(TAG, "Unable to publish image.", publicationFailure);
+                                    viewFinder.post(() -> {
+                                        Toast.makeText(requireContext(), String.format("Unable to publish image. %s", publicationFailure.getMessage()), Toast.LENGTH_LONG).show();
+                                    });
+                                }
                                 Navigation.findNavController(requireActivity(), R.id.fragment_container)
                                         .navigate(CameraFragmentDirections.actionCameraFragmentToSupplementaryInputFragment());
                             } catch (ImageFileWriter.FormatNotSupportedException unlikely) {
@@ -417,11 +426,6 @@ public class CameraFragment extends Fragment {
                                 Log.w(TAG, "Unable to read image metadata.", readFailure);
                                 viewFinder.post(() -> {
                                     Toast.makeText(requireContext(), String.format("Unable to read image metadata. %s", readFailure.getMessage()), Toast.LENGTH_SHORT).show();
-                                });
-                            } catch (PublicationDelegate.PublicationFailure publicationFailure) {
-                                Log.e(TAG, "Unable to publish image.", publicationFailure);
-                                viewFinder.post(() -> {
-                                    Toast.makeText(requireContext(), String.format("Unable to publish image. %s", publicationFailure.getMessage()), Toast.LENGTH_LONG).show();
                                 });
                             } finally {
                                 imageProxy.close();

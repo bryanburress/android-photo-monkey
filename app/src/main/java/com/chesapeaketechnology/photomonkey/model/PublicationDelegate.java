@@ -17,7 +17,7 @@ import java.io.File;
  * Encapsulates functionality related to notifying other applications of
  * image changes and sharing an image with other applications.
  *
- * @since 0.1.0
+ * @since 0.2.0
  */
 public class PublicationDelegate {
     private static final String TAG = PublicationDelegate.class.getSimpleName();
@@ -30,6 +30,7 @@ public class PublicationDelegate {
     public void makeAvailableToOtherApps(Image image) {
         //Use the media scanner to ensure other apps can see the image.
         File file = image.getFile();
+        //noinspection UnstableApiUsage
         String extension = Files.getFileExtension(file.getName());
         String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
         MediaScannerConnection.scanFile(PhotoMonkeyApplication.getContext(), new String[]{file.getAbsolutePath()}, new String[]{mimeType}, (path, uri) -> {
@@ -59,7 +60,7 @@ public class PublicationDelegate {
     }
 
 
-    public class PublicationFailure extends Exception {
+    public static class PublicationFailure extends Exception {
         public PublicationFailure(String message) {
             super(message);
         }
