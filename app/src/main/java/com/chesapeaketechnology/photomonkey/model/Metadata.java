@@ -4,6 +4,11 @@ import android.location.Location;
 
 import androidx.annotation.NonNull;
 
+/**
+ * The metedata for an image
+ *
+ * @since 0.1.0
+ */
 public class Metadata {
     private Location location;
     private boolean reversed;

@@ -13,10 +13,21 @@ import com.google.common.io.Files;
 
 import java.io.File;
 
+/**
+ * Encapsulates functionality related to notifying other applications of
+ * image changes and sharing an image with other applications.
+ *
+ * @since 0.1.0
+ */
 public class PublicationDelegate {
     private static final String TAG = PublicationDelegate.class.getSimpleName();
 
-    public void makeAvailableToOtherApps(Image image){
+    /**
+     * Scan the media to ensure other apps can see the image.
+     *
+     * @param image
+     */
+    public void makeAvailableToOtherApps(Image image) {
         //Use the media scanner to ensure other apps can see the image.
         File file = image.getFile();
         String extension = Files.getFileExtension(file.getName());
@@ -26,6 +37,12 @@ public class PublicationDelegate {
         });
     }
 
+    /**
+     * Send the image to SyncMonkey via the SEND_FILE_NO_UI action.
+     *
+     * @param image
+     * @throws PublicationFailure
+     */
     public void sendToSyncMonkey(Image image) throws PublicationFailure {
         final Intent syncMonkeyIntent = new Intent(PhotoMonkeyConstants.SYNC_MONKEY_ACTION);
         syncMonkeyIntent.addCategory(Intent.CATEGORY_DEFAULT);

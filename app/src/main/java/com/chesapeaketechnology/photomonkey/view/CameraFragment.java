@@ -65,10 +65,13 @@ import static java.lang.Integer.max;
 import static java.lang.Integer.min;
 import static java.lang.Math.abs;
 
-
+/**
+ * User interface fragment responsible for providing a view finder and capturing pictures.
+ *
+ * @since 0.1.0
+ */
 public class CameraFragment extends Fragment {
     private static final String TAG = CameraFragment.class.getSimpleName();
-    private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     private LocalBroadcastManager broadcastManager;
     private ConstraintLayout container;
@@ -90,6 +93,9 @@ public class CameraFragment extends Fragment {
         return (DisplayManager)requireContext().getSystemService(Context.DISPLAY_SERVICE);
     }
 
+    /**
+     * Handle presses of the volume down hardware button.
+     */
     private final BroadcastReceiver volumeDownReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -152,10 +158,12 @@ public class CameraFragment extends Fragment {
         // Unregister the broadcast receivers and listeners
         broadcastManager.unregisterReceiver(volumeDownReceiver);
         getDisplayManager().unregisterDisplayListener(displayListener);
-
-//        ((LocationUpdateProvider)requireActivity()).removeLocationUpdateListener(this);
     }
 
+    /**
+     * Set the thumbnail used in the gallery button in the user interface.
+     * @param uri
+     */
     private void setGalleryThumbnail(Uri uri) {
         // Reference of the view that holds the gallery thumbnail
         ImageView thumbnail = container.findViewById(R.id.photo_view_button);
@@ -180,7 +188,10 @@ public class CameraFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Create a shared view model to facilitate passing data between fragments.
         viewModel = new ViewModelProvider(requireActivity()).get(SharedImageViewModel.class);
+
+        //Register the shared view model to receive location updates.
         LocationManager locationManager = ((LocationManagerProvider)requireActivity()).getLocationManager();
         viewModel.setLocationManager(locationManager);
 
@@ -237,10 +248,9 @@ public class CameraFragment extends Fragment {
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext());
 
         cameraProviderFuture.addListener(() -> {
-            // CameraProvider
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
-                // Preview
+                // setup the Preview
                 preview = new Preview.Builder()
                         // We request aspect ratio but no resolution
                         .setTargetAspectRatio((int)screenAspectRatio)
@@ -248,7 +258,7 @@ public class CameraFragment extends Fragment {
                         .setTargetRotation(rotation)
                         .build();
 
-                // ImageCapture
+                // configure the ImageCapture component
                 imageCapture = new ImageCapture.Builder()
                         .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                         // We request aspect ratio but no resolution to match preview config, but letting
@@ -264,6 +274,7 @@ public class CameraFragment extends Fragment {
                try {
                    // A variable number of use-cases can be passed here -
                    // camera provides access to CameraControl & CameraInfo
+                   // may need to add focus and metering in the future.
                    camera = cameraProvider.bindToLifecycle(this_fragment, cameraSelector, preview, imageCapture);
 
                    // Attach the viewfinder's surface provider to preview use case
@@ -302,7 +313,9 @@ public class CameraFragment extends Fragment {
         return AspectRatio.RATIO_16_9;
     }
 
-    /** Method used to re-draw the camera UI controls, called every time configuration changes. */
+    /**
+     * Re-draw the camera UI controls; called every time configuration changes.
+     */
     @SuppressLint("StaticFieldLeak")
     private void updateCameraUi() {
 
@@ -331,7 +344,6 @@ public class CameraFragment extends Fragment {
 
         // Listener for button used to capture photo
         controls.findViewById(R.id.camera_capture_button).setOnClickListener(v -> takePicture());
-
 
         // Listener for button used to switch cameras
         controls.findViewById(R.id.camera_switch_button).setOnClickListener(v -> {
@@ -363,6 +375,10 @@ public class CameraFragment extends Fragment {
         });
     }
 
+    /**
+     * Capture a picture from the camera, save it, update the metadata, and
+     * request user input for supplementary data.
+     */
     private void takePicture() {
         // Get a stable reference of the modifiable image capture use case
         if (imageCapture != null) {

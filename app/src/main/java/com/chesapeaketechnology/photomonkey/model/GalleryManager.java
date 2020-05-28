@@ -6,12 +6,9 @@ import android.database.Cursor;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.util.Log;
-import android.widget.Toast;
 
 import com.chesapeaketechnology.photomonkey.PhotoMonkeyApplication;
 import com.chesapeaketechnology.photomonkey.PhotoMonkeyConfig;
-import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 
 import java.io.File;
@@ -33,6 +30,12 @@ import java.util.stream.Collectors;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.EXTENSION_WHITELIST;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.MULTI_FILE_IO_TIMEOUT;
 
+/**
+ * Provides access and management of the media stored in the external media
+ * directory {@link Context#getExternalMediaDirs()}  or in the {@link }MediaStore}
+ *
+ * @since 0.1.0
+ */
 public class GalleryManager {
     private static final String TAG = GalleryManager.class.getSimpleName();
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
@@ -40,12 +43,24 @@ public class GalleryManager {
     public GalleryManager() {
     }
 
-    public boolean isEmpty() throws GalleryAccessFailure{
+    /**
+     * Checks the media storage to determine if there are any images.
+     *
+     * @return true if there are no images in the gallery.
+     * @throws GalleryAccessFailure if we were unable to access the gallery.
+     */
+    public boolean isEmpty() throws GalleryAccessFailure {
         List<Uri> mediaList = getMedia();
         return (mediaList == null || mediaList.isEmpty());
     }
 
-    public Uri getLatest() throws GalleryAccessFailure{
+    /**
+     * Asynchronously, on a separate thread, get the {@link Uri} for the latest image in the gallery
+     *
+     * @return {@link Uri}
+     * @throws GalleryAccessFailure if unable to access the images in the gallery
+     */
+    public Uri getLatest() throws GalleryAccessFailure {
         try {
             Callable<List<Uri>> backgroundTask = () -> {
                 return getMediaUris();
@@ -53,7 +68,7 @@ public class GalleryManager {
             Future<List<Uri>> result = executorService.submit(backgroundTask);
             List<Uri> mediaList = result.get(MULTI_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
             if (mediaList != null && !mediaList.isEmpty()) {
-                Uri lastUri = mediaList.get(mediaList.size() -1);
+                Uri lastUri = mediaList.get(mediaList.size() - 1);
                 return lastUri;
             }
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
@@ -62,6 +77,13 @@ public class GalleryManager {
         return null;
     }
 
+    /**
+     * Asynchronously, on a separate thread, get a list of all of the images in the
+     * gallery in descending chronological order.
+     *
+     * @return List of Uri objects.
+     * @throws GalleryAccessFailure unable to access the media
+     */
     public List<Uri> getMedia() throws GalleryAccessFailure {
         try {
             Callable<List<Uri>> backgroundTask = () -> {
@@ -75,9 +97,14 @@ public class GalleryManager {
         }
     }
 
-
-    private  List<Uri> getMediaUris(){
-        if(PhotoMonkeyConfig.USE_EXTERNAL_MEDIA_DIR) {
+    /**
+     * Logic for accessing the media and pivoting between external
+     * media dir and MediaStore configurations.
+     *
+     * @return a list of image Uris.
+     */
+    private List<Uri> getMediaUris() {
+        if (PhotoMonkeyConfig.USE_EXTERNAL_MEDIA_DIR) {
             File rootDirectory = new FileNameGenerator().getRootDirectory();
             // Walk through all files in the root directory
             List<File> files = Arrays.asList(Objects.requireNonNull(
@@ -110,11 +137,8 @@ public class GalleryManager {
                         MediaStore.Images.ImageColumns.DATE_MODIFIED + " DESC");
             }
             cursor.moveToFirst();
-            while(!cursor.isAfterLast()){
-                Log.d(TAG, " - _ID : " + cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media._ID)));
-                Log.d(TAG, " - File Name : " + cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)));
+            while (!cursor.isAfterLast()) {
                 String path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
-                Log.d(TAG, " - File Path : " + path);
                 uris.add(Uri.parse(path));
                 cursor.moveToNext();
             }
@@ -123,9 +147,16 @@ public class GalleryManager {
         }
     }
 
+    /**
+     * Remove a specific image from the external media dir or the MediaStore.
+     *
+     * @param mediaUri the uri for the image to remove
+     * @return true if the delete was successful.
+     * @throws GalleryDeleteFailure If we were unable to delete the image.
+     */
     public boolean delete(Uri mediaUri) throws GalleryDeleteFailure {
         Context context = PhotoMonkeyApplication.getContext();
-        if(PhotoMonkeyConfig.USE_EXTERNAL_MEDIA_DIR) {
+        if (PhotoMonkeyConfig.USE_EXTERNAL_MEDIA_DIR) {
             File mediaFile = new File(mediaUri.getPath());
             boolean deleted = mediaFile.delete();
             if (!deleted) {
@@ -135,7 +166,7 @@ public class GalleryManager {
         } else {
             ContentResolver resolver = context.getContentResolver();
             int rowsDeleted = resolver.delete(mediaUri, null, null);
-            if (rowsDeleted < 1){
+            if (rowsDeleted < 1) {
                 throw new GalleryDeleteFailure("No rows were deleted.");
             }
         }

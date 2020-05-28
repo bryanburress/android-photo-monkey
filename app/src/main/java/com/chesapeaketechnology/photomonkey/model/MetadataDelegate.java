@@ -1,5 +1,10 @@
 package com.chesapeaketechnology.photomonkey.model;
 
+/**
+ * Encapsulates functionality related to reading and writing the metadata related to an image.
+ *
+ * @since 0.1.0
+ */
 public abstract class MetadataDelegate {
 
     public static MetadataDelegate defaultMetadataDelegate() {
@@ -20,7 +25,7 @@ public abstract class MetadataDelegate {
     }
 
     /**
-     * Save the provided metadata to the image.
+     * Save the metadata for the image.
      *
      * @param metadata
      * @param forImage
@@ -29,7 +34,7 @@ public abstract class MetadataDelegate {
     abstract void save(Metadata metadata, Image forImage) throws SaveFailure;
 
     /**
-     * Read the EXIF data from the image into a Metadata object.
+     * Read the data for the image into a Metadata object.
      *
      * @param fromImage
      * @return

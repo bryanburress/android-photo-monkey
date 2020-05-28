@@ -20,23 +20,24 @@ import java.util.concurrent.TimeoutException;
 
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.SINGLE_FILE_IO_TIMEOUT;
 
+/**
+ * Write an {@link ImageProxy} to the external media directory.  This is a file system
+ * write operation that bypasses media APIs.
+ *
+ * @since 0.1.0
+ */
 public class ImageFileWriter extends ImageWriter {
     private static final String TAG = ImageFileWriter.class.getSimpleName();
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
-//    private final File toFile;
     private final FileNameGenerator fileNameGenerator;
-
-//    public ImageFileWriter(File toFile){
-//        this.toFile = toFile;
-//    }
 
     public ImageFileWriter(FileNameGenerator fileNameGenerator) {
         this.fileNameGenerator = fileNameGenerator;
     }
 
     /**
-     * Write {@link ImageProxy} to the specified file.
+     * Asynchronously, write {@link ImageProxy} to the specified file.
      * Currently, only supports {@link ImageFormat#JPEG}
      * @param image the {@link ImageProxy} to write
      *
@@ -51,7 +52,6 @@ public class ImageFileWriter extends ImageWriter {
                     ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                     // Rewind to make sure it is at the beginning of the buffer
                     buffer.rewind();
-
                     byte[] data = new byte[buffer.capacity()];
                     buffer.get(data);
                     try (FileOutputStream output = new FileOutputStream(toFile)){

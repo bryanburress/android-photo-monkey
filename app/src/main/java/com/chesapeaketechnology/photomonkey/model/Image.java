@@ -1,41 +1,60 @@
 package com.chesapeaketechnology.photomonkey.model;
 
-import android.content.ActivityNotFoundException;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
-import android.util.Log;
-import android.webkit.MimeTypeMap;
+import android.provider.MediaStore;
 
 import androidx.camera.core.ImageProxy;
-import androidx.core.content.FileProvider;
 
-import com.chesapeaketechnology.photomonkey.PhotoMonkeyActivity;
 import com.chesapeaketechnology.photomonkey.PhotoMonkeyApplication;
 import com.chesapeaketechnology.photomonkey.PhotoMonkeyConfig;
-import com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants;
-import com.google.common.io.Files;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
-// TODO: 5/23/20 Add support for public gallery, private gallery, and potentially a public folder. Will need a configuration constant to govern.
+/**
+ * The Image class manages the attributes associated with an image, exposes the necessary
+ * functionality for operating on images, and encapsulates any differences between
+ * the {@link MediaStore} and external media store {@link Context#getExternalMediaDirs()}.
+ *
+ * @since 0.1.0
+ */
 public class Image {
     private static final String TAG = Image.class.getSimpleName();
+    private final MetadataDelegate metadataDelegate;
+    private final PublicationDelegate publicationDelegate;
+    private Uri uri;
+    private Metadata metadata;
+    private Image(Uri uri) {
+        this.uri = uri;
+        metadataDelegate = MetadataDelegate.defaultMetadataDelegate();
+        publicationDelegate = new PublicationDelegate();
+    }
+    private Image(Uri uri, MetadataDelegate metadataDelegate) {
+        this.uri = uri;
+        this.metadataDelegate = metadataDelegate;
+        publicationDelegate = new PublicationDelegate();
+    }
 
+    /**
+     * Create an {@link Image} object from an {@link ImageProxy}. Uses the
+     * default {@link ImageWriter} and {@link MetadataDelegate} for the configured
+     * media store ({@link PhotoMonkeyConfig#USE_EXTERNAL_MEDIA_DIR}) to persist the
+     * image and save the associated {@link Metadata}.
+     *
+     * @param image The ImageProxy object
+     * @return
+     * @throws ImageWriter.FormatNotSupportedException If the image parameter is not a JPG.
+     * @throws ImageWriter.WriteException              If we are unable to write metadata to the image.
+     * @throws MetadataDelegate.ReadFailure            If we are unable to read metadata from the image.
+     */
     public static Image create(ImageProxy image)
             throws ImageWriter.FormatNotSupportedException, ImageWriter.WriteException,
             MetadataDelegate.ReadFailure {
         ImageWriter writer;
         MetadataDelegate mdd;
         Context context = PhotoMonkeyApplication.getContext();
-        if(PhotoMonkeyConfig.USE_EXTERNAL_MEDIA_DIR){
+        if (PhotoMonkeyConfig.USE_EXTERNAL_MEDIA_DIR) {
             writer = new ImageFileWriter(new FileNameGenerator());
             mdd = MetadataDelegate.defaultMetadataDelegate();
         } else {
@@ -45,11 +64,23 @@ public class Image {
         return create(image, writer, mdd);
     }
 
+    /**
+     * Create an {@link Image} object from a {@link Uri} for an image that already exists
+     * in storage. Uses the default {@link ImageWriter} and {@link MetadataDelegate} for
+     * the configured media store ({@link PhotoMonkeyConfig#USE_EXTERNAL_MEDIA_DIR}) to populate
+     * the object.
+     *
+     * @param imageUri the location of the image
+     * @return an Image object
+     * @throws ImageWriter.FormatNotSupportedException If the image parameter is not a JPG.
+     * @throws ImageWriter.WriteException              If we are unable to write metadata to the image.
+     * @throws MetadataDelegate.ReadFailure            If we are unable to read metadata from the image.
+     */
     public static Image create(Uri imageUri)
             throws ImageWriter.FormatNotSupportedException, ImageWriter.WriteException,
             MetadataDelegate.ReadFailure {
         MetadataDelegate mdd;
-        if(PhotoMonkeyConfig.USE_EXTERNAL_MEDIA_DIR){
+        if (PhotoMonkeyConfig.USE_EXTERNAL_MEDIA_DIR) {
             mdd = MetadataDelegate.defaultMetadataDelegate();
         } else {
             mdd = new ExifMetadataMediaStoreDelegate();
@@ -60,12 +91,19 @@ public class Image {
         return img;
     }
 
-    public static Image create(ImageProxy image, ImageWriter imageWriter)
-            throws ImageWriter.FormatNotSupportedException, ImageWriter.WriteException,
-            MetadataDelegate.ReadFailure {
-        return create(image, imageWriter, MetadataDelegate.defaultMetadataDelegate());
-    }
-
+    /**
+     * Create an {@link Image} object from an {@link ImageProxy}. Uses the
+     * provided {@link ImageWriter} and {@link MetadataDelegate} to persist the
+     * image and save the associated {@link Metadata}.
+     *
+     * @param image            the actual image
+     * @param imageWriter      the ImageWriter to be used for persisting the image
+     * @param metadataDelegate the delegate used to read or modify the image's metatdata
+     * @return an Image object
+     * @throws ImageWriter.FormatNotSupportedException If the image parameter is not a JPG.
+     * @throws ImageWriter.WriteException              If we are unable to write metadata to the image.
+     * @throws MetadataDelegate.ReadFailure            If we are unable to read metadata from the image.
+     */
     public static Image create(ImageProxy image, ImageWriter imageWriter, MetadataDelegate metadataDelegate)
             throws ImageWriter.FormatNotSupportedException, ImageWriter.WriteException,
             MetadataDelegate.ReadFailure {
@@ -76,23 +114,6 @@ public class Image {
         return img;
     }
 
-    private final MetadataDelegate metadataDelegate;
-    private final PublicationDelegate publicationDelegate;
-    private Uri uri;
-    private Metadata metadata;
-
-    public Image(Uri uri){
-        this.uri = uri;
-        metadataDelegate = MetadataDelegate.defaultMetadataDelegate();
-        publicationDelegate = new PublicationDelegate();
-    }
-
-    public Image(Uri uri, MetadataDelegate metadataDelegate){
-        this.uri = uri;
-        this.metadataDelegate = metadataDelegate;
-        publicationDelegate = new PublicationDelegate();
-    }
-
     public Metadata getMetadata() {
         return metadata;
     }
@@ -101,23 +122,29 @@ public class Image {
         this.metadata = metadata;
     }
 
+    /**
+     * Get a {@link File} object representing the image
+     *
+     * @return File
+     */
     public File getFile() {
         return new File(Objects.requireNonNull(uri.getPath()));
     }
 
+    /**
+     * Save metadata changes to the image.
+     *
+     * @param metadata
+     * @return the updated Image
+     * @throws MetadataDelegate.SaveFailure if we are unable to save the metadata
+     */
     public Image updateMetadata(Metadata metadata) throws MetadataDelegate.SaveFailure {
         metadataDelegate.save(metadata, this);
         setMetadata(metadata);
         return this;
     }
 
-    public Image refreshMetadata() throws MetadataDelegate.ReadFailure {
-        Metadata metadata = metadataDelegate.read(this);
-        setMetadata(metadata);
-        return this;
-    }
-
-    public Uri getUri(){
+    public Uri getUri() {
         return uri;
     }
 
@@ -125,15 +152,18 @@ public class Image {
         this.uri = uri;
     }
 
+    /**
+     * Publish, or share, the image with other applications on the system.
+     *
+     * @throws PublicationDelegate.PublicationFailure
+     */
     public void publish() throws PublicationDelegate.PublicationFailure {
-        if(PhotoMonkeyConfig.USE_EXTERNAL_MEDIA_DIR) {
+        if (PhotoMonkeyConfig.USE_EXTERNAL_MEDIA_DIR) {
             publicationDelegate.makeAvailableToOtherApps(this);
         }
 
-        if(PhotoMonkeyConfig.AUTOMATIC_SEND_TO_SYNC_MONKEY) {
+        if (PhotoMonkeyConfig.AUTOMATIC_SEND_TO_SYNC_MONKEY) {
             publicationDelegate.sendToSyncMonkey(this);
         }
     }
-
-
 }
