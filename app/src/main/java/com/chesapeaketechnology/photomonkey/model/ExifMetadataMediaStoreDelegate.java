@@ -22,8 +22,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyApplication.getContext;
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.SINGLE_FILE_IO_TIMEOUT;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyApplication.*;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
 
 /**
  * Provides functionality for  EXIF data access and manipulation for image files
@@ -32,7 +32,8 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.SINGLE_F
  *
  * @since 0.2.0
  */
-public class ExifMetadataMediaStoreDelegate extends ExifMetadataDelegate {
+public class ExifMetadataMediaStoreDelegate extends ExifMetadataDelegate
+{
     private static final String TAG = ExifMetadataDelegate.class.getSimpleName();
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -44,33 +45,39 @@ public class ExifMetadataMediaStoreDelegate extends ExifMetadataDelegate {
      * @throws SaveFailure
      */
     @Override
-    public void save(Metadata metadata, Image forImage) throws SaveFailure {
-        try {
+    public void save(Metadata metadata, Image forImage) throws SaveFailure
+    {
+        try
+        {
             Callable<Void> backgroundTask = () -> {
                 Uri uri = forImage.getUri();
                 ExifInterface exif;
-                if ("content".equals(uri.getScheme())) {
+                if ("content".equals(uri.getScheme()))
+                {
                     ContentResolver resolver = getContext().getContentResolver();
-                    try (InputStream in = resolver.openInputStream(uri)) {
+                    try (InputStream in = resolver.openInputStream(uri))
+                    {
                         File tempFile = writeToTempFile(in);
                         exif = new ExifInterface(tempFile.getAbsolutePath());
                         writeData(metadata, exif);
-                        try (OutputStream out = resolver.openOutputStream(uri, "rw")) {
+                        try (OutputStream out = resolver.openOutputStream(uri, "rw"))
+                        {
                             Files.copy(tempFile.toPath(), Objects.requireNonNull(out));
                         }
                         tempFile.delete();
                     }
-                } else {
+                } else
+                {
                     super.save(metadata, forImage);
                 }
-                Log.d(TAG, String.format("Saved image with supplementary data [%s]", String.valueOf(metadata)));
+                Log.d(TAG, String.format("Saved image with supplementary data [%s]", metadata));
                 return null;
             };
 
             Future<Void> result = executorService.submit(backgroundTask);
             result.get(SINGLE_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
-
-        } catch (ExecutionException | InterruptedException | TimeoutException e) {
+        } catch (ExecutionException | InterruptedException | TimeoutException e)
+        {
             throw new SaveFailure("Error saving EXIF data.", e.getCause());
         }
     }
@@ -83,31 +90,37 @@ public class ExifMetadataMediaStoreDelegate extends ExifMetadataDelegate {
      * @throws ReadFailure
      */
     @Override
-    public Metadata read(Image fromImage) throws ReadFailure {
-        try {
+    public Metadata read(Image fromImage) throws ReadFailure
+    {
+        try
+        {
             Callable<Metadata> backgroundTask = () -> {
                 Uri uri = fromImage.getUri();
                 ExifInterface exif;
-                if ("content".equals(uri.getScheme())) {
+                if ("content".equals(uri.getScheme()))
+                {
                     ContentResolver resolver = getContext().getContentResolver();
-                    try (InputStream in = resolver.openInputStream(uri)) {
+                    try (InputStream in = resolver.openInputStream(uri))
+                    {
                         exif = new ExifInterface(Objects.requireNonNull(in));
                         return readData(exif);
                     }
-                } else {
+                } else
+                {
                     return super.read(fromImage);
                 }
             };
 
             Future<Metadata> result = executorService.submit(backgroundTask);
             return result.get(SINGLE_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
-
-        } catch (ExecutionException | InterruptedException | TimeoutException e) {
+        } catch (ExecutionException | InterruptedException | TimeoutException e)
+        {
             throw new ReadFailure("Error accessing EXIF data.", e.getCause());
         }
     }
 
-    private File writeToTempFile(InputStream in) throws IOException {
+    private File writeToTempFile(InputStream in) throws IOException
+    {
         File outputDir = getContext().getExternalCacheDir();
         File tempFile = File.createTempFile("tmp_", ".jpg", outputDir);
         Log.d(TAG, String.format("writeToTempFile: %s", tempFile.getAbsolutePath()));

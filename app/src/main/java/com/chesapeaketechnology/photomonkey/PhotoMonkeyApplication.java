@@ -10,15 +10,18 @@ import android.content.Context;
  *
  * @since 0.2.0
  */
-public class PhotoMonkeyApplication extends Application {
+public class PhotoMonkeyApplication extends Application
+{
     private static Application instance;
 
-    public static Context getContext() {
+    public static Context getContext()
+    {
         return instance.getApplicationContext();
     }
 
     @Override
-    public void onCreate() {
+    public void onCreate()
+    {
         super.onCreate();
         instance = this;
     }

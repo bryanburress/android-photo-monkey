@@ -12,8 +12,10 @@ import java.nio.ByteBuffer;
  *
  * @since 0.2.0
  */
-public abstract class ImageWriter {
-    public static byte[] bytesForJpg(ImageProxy image){
+public abstract class AImageWriter
+{
+    public static byte[] bytesForJpg(ImageProxy image)
+    {
         ByteBuffer buffer = image.getPlanes()[0].getBuffer();
         buffer.rewind();
         byte[] data = new byte[buffer.capacity()];
@@ -24,24 +26,29 @@ public abstract class ImageWriter {
     /**
      * Write {@link ImageProxy} to the appropriate storage.
      * Currently, only supports {@link ImageFormat#JPEG}
-     * @param image the {@link ImageProxy} to write
      *
+     * @param image the {@link ImageProxy} to write
      * @return the {@link Uri} for the written file.
      */
     abstract Uri write(ImageProxy image) throws FormatNotSupportedException, WriteException;
 
-    public static class FormatNotSupportedException extends Exception {
-        public FormatNotSupportedException(String message) {
+    public static class FormatNotSupportedException extends Exception
+    {
+        public FormatNotSupportedException(String message)
+        {
             super(message);
         }
     }
 
-    public static class WriteException extends Exception {
-        public WriteException(String message) {
+    public static class WriteException extends Exception
+    {
+        public WriteException(String message)
+        {
             super(message);
         }
 
-        public WriteException(String message, Throwable cause) {
+        public WriteException(String message, Throwable cause)
+        {
             super(message, cause);
         }
     }

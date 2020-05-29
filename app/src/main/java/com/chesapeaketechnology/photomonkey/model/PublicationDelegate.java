@@ -19,7 +19,8 @@ import java.io.File;
  *
  * @since 0.2.0
  */
-public class PublicationDelegate {
+public class PublicationDelegate
+{
     private static final String TAG = PublicationDelegate.class.getSimpleName();
 
     /**
@@ -27,7 +28,8 @@ public class PublicationDelegate {
      *
      * @param image
      */
-    public void makeAvailableToOtherApps(Image image) {
+    public void makeAvailableToOtherApps(Image image)
+    {
         //Use the media scanner to ensure other apps can see the image.
         File file = image.getFile();
         //noinspection UnstableApiUsage
@@ -44,7 +46,8 @@ public class PublicationDelegate {
      * @param image
      * @throws PublicationFailure
      */
-    public void sendToSyncMonkey(Image image) throws PublicationFailure {
+    public void sendToSyncMonkey(Image image) throws PublicationFailure
+    {
         final Intent syncMonkeyIntent = new Intent(PhotoMonkeyConstants.SYNC_MONKEY_ACTION);
         syncMonkeyIntent.addCategory(Intent.CATEGORY_DEFAULT);
         syncMonkeyIntent.setComponent(new ComponentName(PhotoMonkeyConstants.SYNC_MONKEY_PACKAGE, PhotoMonkeyConstants.SYNC_MONKEY_SHARING_ACTIVITY_CLASS));
@@ -52,20 +55,24 @@ public class PublicationDelegate {
         syncMonkeyIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         syncMonkeyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         syncMonkeyIntent.putExtra(Intent.EXTRA_STREAM, image.getUri());
-        try {
+        try
+        {
             PhotoMonkeyApplication.getContext().startActivity(syncMonkeyIntent);
-        } catch (ActivityNotFoundException e) {
+        } catch (ActivityNotFoundException e)
+        {
             throw new PublicationFailure("Unable to find the Sync Monkey SharingActivity.  Only saving the file locally.", e);
         }
     }
 
-
-    public static class PublicationFailure extends Exception {
-        public PublicationFailure(String message) {
+    public static class PublicationFailure extends Exception
+    {
+        public PublicationFailure(String message)
+        {
             super(message);
         }
 
-        public PublicationFailure(String message, Throwable cause) {
+        public PublicationFailure(String message, Throwable cause)
+        {
             super(message, cause);
         }
     }

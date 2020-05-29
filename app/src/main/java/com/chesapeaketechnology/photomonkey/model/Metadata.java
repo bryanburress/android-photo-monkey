@@ -9,45 +9,57 @@ import androidx.annotation.NonNull;
  *
  * @since 0.2.0
  */
-public class Metadata {
+public class Metadata
+{
     private Location location;
     private boolean reversed;
     private String description;
 
-    public Metadata(){}
+    public Metadata()
+    {
+    }
 
-    public Metadata(String description, Location location, boolean reversed) {
+    public Metadata(String description, Location location, boolean reversed)
+    {
         this.location = location;
         this.reversed = reversed;
         this.description = description;
     }
 
-    public Location getLocation() {
+    public Location getLocation()
+    {
         return location;
     }
 
-    public void setLocation(Location location) {
+    public void setLocation(Location location)
+    {
         this.location = location;
     }
 
-    public String getDescription() {
+    public String getDescription()
+    {
         return description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(String description)
+    {
         this.description = description;
     }
 
-    public boolean isReversed() {
+    public boolean isReversed()
+    {
         return reversed;
     }
 
-    public void setReversed(boolean reversed) {
+    public void setReversed(boolean reversed)
+    {
         this.reversed = reversed;
     }
 
     @Override
-    public @NonNull String toString() {
+    public @NonNull
+    String toString()
+    {
         return "Metadata{" +
                 "location=" + location +
                 ", reversed=" + reversed +

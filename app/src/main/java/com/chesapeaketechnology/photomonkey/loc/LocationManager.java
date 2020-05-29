@@ -20,11 +20,8 @@ import androidx.lifecycle.OnLifecycleEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.content.Context.LOCATION_SERVICE;
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.LOCATION_REFRESH_DISTANCE;
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.LOCATION_REFRESH_TIME;
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.PERMISSIONS_REQUEST_CODE;
-
+import static android.content.Context.*;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
 
 /**
  * Provides location updates for permitted listeners.
@@ -33,44 +30,52 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.PERMISSI
  *
  * @since 0.2.0
  */
-public class LocationManager implements LifecycleObserver {
+public class LocationManager implements LifecycleObserver
+{
     private static final String TAG = LocationManager.class.getSimpleName();
     private static final int LOW_POWER_STEP_DOWN_MULTIPLIER = 10;
     private final Context context;
     private final Lifecycle lifecycle;
     private android.location.LocationManager locationManager;
     private LocationListener locationListener;
-    private List<LocationUpdateListener> updateListeners = new ArrayList<>();
-    public LocationManager(Context context, Lifecycle lifecycle) {
+    private List<ILocationUpdateListener> updateListeners = new ArrayList<>();
+
+    public LocationManager(Context context, Lifecycle lifecycle)
+    {
         this.context = context;
         this.lifecycle = lifecycle;
         lifecycle.addObserver(this);
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
-    void create() {
+    void create()
+    {
         locationManager = (android.location.LocationManager) context.getSystemService(LOCATION_SERVICE);
         Criteria criteria = getCriteria(LocationTrackingMode.LOW_POWER);
         register(criteria, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE);
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    void resume() {
+    void resume()
+    {
         switchTo(LocationManager.LocationTrackingMode.HIGH_ACCURACY);
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-    void pause() {
+    void pause()
+    {
         // TODO: 5/23/20 Do I need to slow down the updates on pause?
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-    void stop() {
+    void stop()
+    {
         switchTo(LocationManager.LocationTrackingMode.LOW_POWER);
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-    void destroy() {
+    void destroy()
+    {
         lifecycle.removeObserver(this);
         deregister();
         locationListener = null;
@@ -78,44 +83,57 @@ public class LocationManager implements LifecycleObserver {
         updateListeners = new ArrayList<>();
     }
 
-    private void deregister() {
-        if (locationManager != null) {
-            try {
+    private void deregister()
+    {
+        if (locationManager != null)
+        {
+            try
+            {
                 if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                        && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+                {
                     return;
                 }
                 locationManager.removeUpdates(locationListener);
-            } catch (Exception ex) {
+            } catch (Exception ex)
+            {
                 Log.w(TAG, "Failed to remove location listener", ex);
             }
         }
     }
 
-    private void register(Criteria criteria, long minTime, float minDistance) {
-        locationListener = new LocationListener() {
+    private void register(Criteria criteria, long minTime, float minDistance)
+    {
+        locationListener = new LocationListener()
+        {
             @Override
-            public void onLocationChanged(final Location location) {
+            public void onLocationChanged(final Location location)
+            {
                 updateListeners.forEach(listener -> listener.locationUpdated(location));
             }
 
             @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
+            public void onStatusChanged(String provider, int status, Bundle extras)
+            {
             }
 
             @Override
-            public void onProviderEnabled(String provider) {
+            public void onProviderEnabled(String provider)
+            {
             }
 
             @Override
-            public void onProviderDisabled(String provider) {
+            public void onProviderDisabled(String provider)
+            {
             }
         };
 
         // Ensure that we have permissions to track the devices location.
         if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                && ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            if (locationManager != null) {
+                && ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+        {
+            if (locationManager != null)
+            {
                 String provider = locationManager.getBestProvider(criteria, true);
                 if (provider == null) provider = android.location.LocationManager.GPS_PROVIDER;
 
@@ -124,12 +142,15 @@ public class LocationManager implements LifecycleObserver {
                         minDistance,
                         locationListener);
             }
-        } else {
+        } else
+        {
             if (ActivityCompat.shouldShowRequestPermissionRationale((Activity) context, Manifest.permission.ACCESS_FINE_LOCATION)
-                    || ActivityCompat.shouldShowRequestPermissionRationale((Activity) context, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                    || ActivityCompat.shouldShowRequestPermissionRationale((Activity) context, Manifest.permission.ACCESS_COARSE_LOCATION))
+            {
                 Log.e(TAG, "Permission denied for location data.");
                 Toast.makeText(context, "Permission denied for location data.", Toast.LENGTH_LONG).show();
-            } else {
+            } else
+            {
                 ActivityCompat.requestPermissions((Activity) context,
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
                         PERMISSIONS_REQUEST_CODE);
@@ -137,17 +158,21 @@ public class LocationManager implements LifecycleObserver {
         }
     }
 
-    public void addUpdateListener(LocationUpdateListener listener) {
+    public void addUpdateListener(ILocationUpdateListener listener)
+    {
         updateListeners.add(listener);
     }
 
-    public void removeUpdateListener(LocationUpdateListener listener) {
+    public void removeUpdateListener(ILocationUpdateListener listener)
+    {
         updateListeners.remove(listener);
     }
 
-    private Criteria getCriteria(LocationTrackingMode mode) {
+    private Criteria getCriteria(LocationTrackingMode mode)
+    {
         Criteria criteria = new Criteria();
-        switch (mode) {
+        switch (mode)
+        {
             case HIGH_ACCURACY:
                 criteria.setAccuracy(Criteria.ACCURACY_FINE);
                 criteria.setCostAllowed(true);
@@ -171,8 +196,10 @@ public class LocationManager implements LifecycleObserver {
      * @param mode
      * @return
      */
-    private int getStepDownMultiplier(LocationTrackingMode mode) {
-        if (mode == LocationTrackingMode.LOW_POWER) {
+    private int getStepDownMultiplier(LocationTrackingMode mode)
+    {
+        if (mode == LocationTrackingMode.LOW_POWER)
+        {
             return LOW_POWER_STEP_DOWN_MULTIPLIER;
         }
         return 1;
@@ -183,7 +210,8 @@ public class LocationManager implements LifecycleObserver {
      *
      * @param mode
      */
-    private void switchTo(LocationTrackingMode mode) {
+    private void switchTo(LocationTrackingMode mode)
+    {
         deregister();
         Criteria criteria = getCriteria(mode);
         Log.i(TAG, String.format("Switching to location tracking mode %s.", mode.name()));
@@ -192,7 +220,8 @@ public class LocationManager implements LifecycleObserver {
                 LOCATION_REFRESH_DISTANCE * (float) getStepDownMultiplier(mode));
     }
 
-    public enum LocationTrackingMode {
+    public enum LocationTrackingMode
+    {
         HIGH_ACCURACY,
         LOW_POWER
     }

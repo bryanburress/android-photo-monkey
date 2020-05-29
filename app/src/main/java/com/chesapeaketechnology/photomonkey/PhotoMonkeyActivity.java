@@ -8,14 +8,10 @@ import android.widget.FrameLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.chesapeaketechnology.photomonkey.loc.ILocationManagerProvider;
 import com.chesapeaketechnology.photomonkey.loc.LocationManager;
-import com.chesapeaketechnology.photomonkey.loc.LocationManagerProvider;
 
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.FLAGS_FULLSCREEN;
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.IMMERSIVE_FLAG_TIMEOUT;
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.KEY_EVENT_ACTION;
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.KEY_EVENT_EXTRA;
-
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
 
 /**
  * The main activity for the Photo Monkey app. This activity acts as a holder for a series of
@@ -23,27 +19,32 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.KEY_EVEN
  *
  * @since 0.2.0
  */
-public class PhotoMonkeyActivity extends AppCompatActivity implements LocationManagerProvider {
+public class PhotoMonkeyActivity extends AppCompatActivity implements ILocationManagerProvider
+{
     private FrameLayout container;
     private LocationManager locationManager;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         container = findViewById(R.id.fragment_container);
     }
 
     @Override
-    protected void onResume() {
+    protected void onResume()
+    {
         super.onResume();
         container.postDelayed(() -> container.setSystemUiVisibility(FLAGS_FULLSCREEN), IMMERSIVE_FLAG_TIMEOUT);
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
+    public boolean onKeyDown(int keyCode, KeyEvent event)
+    {
         // Capture volume down hardware button and ensure it is forwarded to fragments.
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+        {
             Intent intent = new Intent(KEY_EVENT_ACTION);
             intent = intent.putExtra(KEY_EVENT_EXTRA, KeyEvent.KEYCODE_VOLUME_DOWN);
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
@@ -53,8 +54,10 @@ public class PhotoMonkeyActivity extends AppCompatActivity implements LocationMa
     }
 
     @Override
-    public LocationManager getLocationManager() {
-        if (locationManager == null) {
+    public LocationManager getLocationManager()
+    {
+        if (locationManager == null)
+        {
             locationManager = new LocationManager(this, getLifecycle());
         }
         return locationManager;

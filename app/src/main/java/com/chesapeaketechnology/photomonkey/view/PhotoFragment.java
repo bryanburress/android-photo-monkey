@@ -19,13 +19,16 @@ import com.chesapeaketechnology.photomonkey.R;
  *
  * @since 0.2.0
  */
-public class PhotoFragment extends Fragment {
+public class PhotoFragment extends Fragment
+{
     public static final String FILE_NAME_KEY = "file_name";
 
-    public PhotoFragment() {
+    public PhotoFragment()
+    {
     }
 
-    static PhotoFragment create(Uri imageUri) {
+    static PhotoFragment create(Uri imageUri)
+    {
         PhotoFragment frag = new PhotoFragment();
         Bundle arguments = new Bundle();
         arguments.putString(FILE_NAME_KEY, imageUri.toString());
@@ -35,23 +38,28 @@ public class PhotoFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
+    {
         return new ImageView(getContext());
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
+    {
         super.onViewCreated(view, savedInstanceState);
         Bundle args = getArguments();
         if (args == null) return;
         String path = args.getString(FILE_NAME_KEY);
         Uri imageUri = Uri.parse(path);
-        if (imageUri.getScheme() == null) {
+        if (imageUri.getScheme() == null)
+        {
             imageUri = Uri.parse("file://" + imageUri.getPath());
         }
-        if (imageUri == null) {
+        if (imageUri == null)
+        {
             Glide.with(view).load(R.drawable.ic_photo).centerCrop().into((ImageView) view);
-        } else {
+        } else
+        {
             Glide.with(view).load(imageUri).centerCrop().into((ImageView) view);
         }
     }

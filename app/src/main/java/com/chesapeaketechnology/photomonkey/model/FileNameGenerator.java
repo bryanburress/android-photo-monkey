@@ -20,7 +20,8 @@ import java.util.Objects;
  *
  * @since 0.2.0
  */
-public class FileNameGenerator {
+public class FileNameGenerator
+{
     public static final String PREFIX = PhotoMonkeyConstants.PHOTO_MONKEY_PHOTO_NAME_PREFIX;
     public static final String FILE_NAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS";
     public static final String VOLUME = "PhotoMonkey";
@@ -28,16 +29,20 @@ public class FileNameGenerator {
     private static final String TAG = FileNameGenerator.class.getSimpleName();
     private final File outputDirectory;
 
-    public FileNameGenerator() {
+    public FileNameGenerator()
+    {
         outputDirectory = getOutputDirectory();
     }
 
-    private File getOutputDirectory() {
+    private File getOutputDirectory()
+    {
         Context appContext = PhotoMonkeyApplication.getContext();
         File[] mediaDirs = appContext.getExternalMediaDirs();
-        if (mediaDirs != null && mediaDirs.length > 0) {
+        if (mediaDirs != null && mediaDirs.length > 0)
+        {
             File mediaDir = Arrays.stream(mediaDirs).filter(Objects::nonNull).findFirst().orElse(null);
-            if (mediaDir != null && mediaDir.exists()) {
+            if (mediaDir != null && mediaDir.exists())
+            {
                 return mediaDir;
             }
         }
@@ -49,13 +54,16 @@ public class FileNameGenerator {
      *
      * @return
      */
-    public File getRootDirectory() {
+    public File getRootDirectory()
+    {
         Path outputPath = Paths.get(String.valueOf(outputDirectory.toPath()), VOLUME);
         File outputFolder = outputPath.toFile();
         boolean outputFolderExists = outputFolder.exists();
-        if (!outputFolderExists) {
+        if (!outputFolderExists)
+        {
             outputFolderExists = outputFolder.mkdirs();
-            if (!outputFolderExists) {
+            if (!outputFolderExists)
+            {
                 outputFolder = outputDirectory;
             }
         }
@@ -67,12 +75,12 @@ public class FileNameGenerator {
      *
      * @return
      */
-    public File generate() {
+    public File generate()
+    {
         // TODO: 5/27/20 Ask Christian whether there is a concern about multiple users colliding which file names. Should we add a device id?
         File outputFolder = getRootDirectory();
         File fileName = new File(outputFolder, PREFIX + new SimpleDateFormat(FILE_NAME_FORMAT, Locale.US).format(System.currentTimeMillis()) + EXTENSION);
         Log.d(TAG, String.format("Generated path: %s", fileName.getAbsolutePath()));
         return fileName;
     }
-
 }

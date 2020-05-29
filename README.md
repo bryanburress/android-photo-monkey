@@ -43,6 +43,7 @@ Install Android Studio to work on this code.
 *exiftool can be installed via homebrew package manager*
 
 #### Known Issues
+ * Needs unit tests
  * There is an issue with writing to the MediaStore ContentResolver output stream for Android R (api 30)
 
 

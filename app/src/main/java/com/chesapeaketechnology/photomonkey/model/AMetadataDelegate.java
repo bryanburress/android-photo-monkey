@@ -5,9 +5,11 @@ package com.chesapeaketechnology.photomonkey.model;
  *
  * @since 0.2.0
  */
-public abstract class MetadataDelegate {
+public abstract class AMetadataDelegate
+{
 
-    public static MetadataDelegate defaultMetadataDelegate() {
+    public static AMetadataDelegate defaultMetadataDelegate()
+    {
         return new ExifMetadataDelegate();
     }
 
@@ -17,8 +19,10 @@ public abstract class MetadataDelegate {
      * @param strategy
      * @return
      */
-    public static MetadataDelegate getDelegate(PersistenceStrategy strategy) {
-        if (strategy == PersistenceStrategy.EXIF) {
+    public static AMetadataDelegate getDelegate(PersistenceStrategy strategy)
+    {
+        if (strategy == PersistenceStrategy.EXIF)
+        {
             return new ExifMetadataDelegate();
         }
         return defaultMetadataDelegate();
@@ -42,26 +46,33 @@ public abstract class MetadataDelegate {
      */
     abstract Metadata read(Image fromImage) throws ReadFailure;
 
-    public enum PersistenceStrategy {
+    public enum PersistenceStrategy
+    {
         EXIF
     }
 
-    public static class SaveFailure extends Exception {
-        public SaveFailure(String message) {
+    public static class SaveFailure extends Exception
+    {
+        public SaveFailure(String message)
+        {
             super(message);
         }
 
-        public SaveFailure(String message, Throwable cause) {
+        public SaveFailure(String message, Throwable cause)
+        {
             super(message, cause);
         }
     }
 
-    public static class ReadFailure extends Exception {
-        public ReadFailure(String message) {
+    public static class ReadFailure extends Exception
+    {
+        public ReadFailure(String message)
+        {
             super(message);
         }
 
-        public ReadFailure(String message, Throwable cause) {
+        public ReadFailure(String message, Throwable cause)
+        {
             super(message, cause);
         }
     }

@@ -15,48 +15,57 @@ import com.chesapeaketechnology.photomonkey.R;
 
 import java.util.Arrays;
 
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.PERMISSIONS_REQUEST_CODE;
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.PERMISSIONS_REQUIRED;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
 
 /**
  * Verifies that the necessary permissions are present and navigates back to the {@link CameraFragment}.
  *
  * @since 0.2.0
  */
-public class PermissionsFragment extends Fragment {
+public class PermissionsFragment extends Fragment
+{
 
-    public PermissionsFragment() {
+    public PermissionsFragment()
+    {
     }
 
-    public static boolean hasPermissions(Context context) {
+    public static boolean hasPermissions(Context context)
+    {
         return Arrays.stream(PERMISSIONS_REQUIRED).allMatch(p -> {
             return ContextCompat.checkSelfPermission(context, p) == PackageManager.PERMISSION_GRANTED;
         });
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
 
-        if (hasPermissions(requireContext())) {
+        if (hasPermissions(requireContext()))
+        {
             Navigation.findNavController(requireActivity(), R.id.fragment_container).navigate(
                     PermissionsFragmentDirections.actionPermissionsFragmentToCameraFragment()
             );
-        } else {
+        } else
+        {
             requestPermissions(PERMISSIONS_REQUIRED, PERMISSIONS_REQUEST_CODE);
         }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+    {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSIONS_REQUEST_CODE) {
-            if (PackageManager.PERMISSION_GRANTED == grantResults[0]) {
+        if (requestCode == PERMISSIONS_REQUEST_CODE)
+        {
+            if (PackageManager.PERMISSION_GRANTED == grantResults[0])
+            {
                 Toast.makeText(getContext(), "Permission request granted", Toast.LENGTH_SHORT).show();
                 Navigation.findNavController(requireActivity(), R.id.fragment_container).navigate(
                         PermissionsFragmentDirections.actionPermissionsFragmentToCameraFragment()
                 );
-            } else {
+            } else
+            {
                 Toast.makeText(getContext(), "Permission request denied", Toast.LENGTH_LONG).show();
             }
         }

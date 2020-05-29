@@ -24,19 +24,21 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.SINGLE_FILE_IO_TIMEOUT;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
 
 /**
  * Write an {@link ImageProxy} to the {@link MediaStore} using the MediaStore APIs.
  *
  * @since 0.2.0
  */
-public class ImageMediaStoreWriter extends ImageWriter {
+public class ImageMediaStoreWriter extends AImageWriter
+{
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     private final FileNameGenerator fileNameGenerator;
 
-    public ImageMediaStoreWriter(FileNameGenerator fileNameGenerator) {
+    public ImageMediaStoreWriter(FileNameGenerator fileNameGenerator)
+    {
         this.fileNameGenerator = fileNameGenerator;
     }
 
@@ -48,13 +50,17 @@ public class ImageMediaStoreWriter extends ImageWriter {
      * @return the {@link Uri} for the written file.
      */
     @Override
-    public Uri write(ImageProxy image) throws FormatNotSupportedException, WriteException {
+    public Uri write(ImageProxy image) throws FormatNotSupportedException, WriteException
+    {
 
         // TODO: 5/26/20 Move off of the ui thread
-        if (image.getFormat() == ImageFormat.JPEG) {
-            try {
+        if (image.getFormat() == ImageFormat.JPEG)
+        {
+            try
+            {
                 Callable<Uri> writeTask = () -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                    {
                         ContentResolver resolver = PhotoMonkeyApplication.getContext().getContentResolver();
                         ContentValues contentValues = new ContentValues();
 
@@ -68,32 +74,41 @@ public class ImageMediaStoreWriter extends ImageWriter {
 
                         Uri collection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
                         Uri imageUri = resolver.insert(collection, contentValues);
-                        if (imageUri != null) {
-                            try (OutputStream out = resolver.openOutputStream(imageUri)) {
-                                byte[] data = ImageWriter.bytesForJpg(image);
-                                if (out != null) {
+                        if (imageUri != null)
+                        {
+                            try (OutputStream out = resolver.openOutputStream(imageUri))
+                            {
+                                byte[] data = AImageWriter.bytesForJpg(image);
+                                if (out != null)
+                                {
                                     out.write(data);
                                 }
                                 return imageUri;
-                            } catch (FileNotFoundException e) {
-                                throw new WriteException(String.format("Unable to access file uri '%s'", imageUri.toString()));
-                            } catch (IOException e) {
-                                throw new WriteException(String.format("Error accessing file '%s'", imageUri.toString()));
+                            } catch (FileNotFoundException e)
+                            {
+                                throw new WriteException(String.format("Unable to access file uri '%s'", imageUri));
+                            } catch (IOException e)
+                            {
+                                throw new WriteException(String.format("Error accessing file '%s'", imageUri));
                             }
-                        } else {
+                        } else
+                        {
                             throw new WriteException("Unable to retrieve uri for MediaStore.");
                         }
-                    } else {
+                    } else
+                    {
                         throw new WriteException("Unsupported Android version.  Must be Q or greater.");
                     }
                 };
 
                 Future<Uri> result = executorService.submit(writeTask);
                 return result.get(SINGLE_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
-            } catch (ExecutionException | InterruptedException | TimeoutException e) {
+            } catch (ExecutionException | InterruptedException | TimeoutException e)
+            {
                 throw new WriteException("Unable to save image", e.getCause());
             }
-        } else {
+        } else
+        {
             throw new FormatNotSupportedException(String.format("%d is not a supported format.", image.getFormat()));
         }
     }
