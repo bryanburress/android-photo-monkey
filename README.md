@@ -16,11 +16,8 @@ To build and install the project follow the steps below:
 Install Android Studio to work on this code.
 
 ## Changelog
-
-##### [0.1.0]() - 2020-04-17
- * Initial cut of the Photo Monkey Android App
  
-##### [0.2.0]() - 2020-05-28
+##### [0.1.0]() - 2020-05-28
  * Reworked UI to be Fragment based
  * Added androidx navigation elements
  * Implemented support for using the Jetpack CameraX ImageCapture libraries
