@@ -73,7 +73,7 @@ public class GalleryManager
             List<Uri> mediaList = result.get(MULTI_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
             if (mediaList != null && !mediaList.isEmpty())
             {
-                return mediaList.get(mediaList.size() - 1);
+                return mediaList.get(0);
             }
         } catch (ExecutionException | InterruptedException | TimeoutException e)
         {
