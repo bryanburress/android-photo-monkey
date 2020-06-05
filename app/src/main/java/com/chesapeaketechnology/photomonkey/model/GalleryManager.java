@@ -130,26 +130,16 @@ public class GalleryManager
         {
             List<Uri> uris = new ArrayList<>();
             ContentResolver resolver = PhotoMonkeyApplication.getContext().getContentResolver();
-            Cursor cursor = null;
-            try
+            final String sortOrder;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q)
             {
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q)
-                {
-                    cursor = resolver.query(
-                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                            null,
-                            null,
-                            null,
-                            MediaStore.Images.ImageColumns.DATE_TAKEN + " DESC");
-                } else
-                {
-                    cursor = resolver.query(
-                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                            null,
-                            null,
-                            null,
-                            MediaStore.Images.ImageColumns.DATE_MODIFIED + " DESC");
-                }
+                sortOrder = MediaStore.Images.ImageColumns.DATE_TAKEN + " DESC";
+            } else
+            {
+                sortOrder = MediaStore.Images.ImageColumns.DATE_MODIFIED + " DESC";
+            }
+            try (Cursor cursor = resolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, sortOrder))
+            {
                 cursor.moveToFirst();
                 while (!cursor.isAfterLast())
                 {
@@ -157,12 +147,6 @@ public class GalleryManager
                     Uri contentUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Images.ImageColumns._ID)));
                     uris.add(contentUri);
                     cursor.moveToNext();
-                }
-            } finally
-            {
-                if (cursor != null)
-                {
-                    cursor.close();
                 }
             }
             return uris.stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
