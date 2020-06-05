@@ -19,9 +19,6 @@
     </style>
 
     <style name="AlertDialogTheme" parent="@android:style/Theme.Material.Dialog.Alert">
-<!--        <item name="android:colorPrimary">@color/primaryColor</item>-->
-<!--        <item name="android:colorAccent">@color/primaryColor</item>-->
-<!--        <item name="android:colorSecondary">@color/primaryDarkColor</item>-->
         <item name="android:buttonBarNegativeButtonStyle">@style/NegativeButtonStyle</item>
         <item name="android:buttonBarPositiveButtonStyle">@style/PositiveButtonStyle</item>
     </style>
