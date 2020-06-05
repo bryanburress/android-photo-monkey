@@ -73,7 +73,7 @@ public class GalleryFragment extends Fragment
         {
             Log.e(TAG, "updateCameraUi: Unable to find existing images.", e);
             Throwable rootCause = Throwables.getRootCause(e);
-            getView().post(() -> {
+            requireView().post(() -> {
                 Toast.makeText(requireContext(), String.format("Unable to find existing images. %s", rootCause.getMessage()), Toast.LENGTH_SHORT).show();
             });
         }
