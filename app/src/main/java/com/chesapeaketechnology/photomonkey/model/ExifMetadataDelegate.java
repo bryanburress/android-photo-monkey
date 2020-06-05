@@ -18,7 +18,7 @@ import java.util.concurrent.TimeoutException;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
 
 /**
- * Provides functionality for  EXIF data access and manipulation for image files
+ * Provides functionality for EXIF data access and manipulation for image files
  * in the External Media Dir ({@link Context#getExternalMediaDirs()})
  *
  * @since 0.2.0
