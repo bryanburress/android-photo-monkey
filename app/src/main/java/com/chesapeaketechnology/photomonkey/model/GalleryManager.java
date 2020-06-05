@@ -32,7 +32,7 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
 
 /**
  * Provides access and management of the media stored in the external media
- * directory {@link Context#getExternalMediaDirs()}  or in the {@link }MediaStore}
+ * directory {@link Context#getExternalMediaDirs()}  or in the {@link MediaStore}
  *
  * @since 0.2.0
  */
@@ -66,9 +66,7 @@ public class GalleryManager
     {
         try
         {
-            Callable<List<Uri>> backgroundTask = () -> {
-                return getMediaUris();
-            };
+            Callable<List<Uri>> backgroundTask = this::getMediaUris;
             Future<List<Uri>> result = executorService.submit(backgroundTask);
             List<Uri> mediaList = result.get(MULTI_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
             if (mediaList != null && !mediaList.isEmpty())
