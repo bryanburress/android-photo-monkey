@@ -15,8 +15,4 @@
     <string name="delete_title">Confirm</string>
     <string name="picture_taken">Picture Taken</string>
     <string name="save_button">Save</string>
-
-    <string name="capture_mode_camera">Camera</string>
-    <string name="capture_mode_hdr">HDR</string>
-    <string name="capture_mode_night">Night</string>
 </resources>
