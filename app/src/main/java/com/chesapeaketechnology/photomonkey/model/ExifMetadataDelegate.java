@@ -28,13 +28,6 @@ public class ExifMetadataDelegate extends AMetadataDelegate
     private static final String TAG = ExifMetadataDelegate.class.getSimpleName();
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
-    /**
-     * Save the provided metadata to the image.
-     *
-     * @param metadata
-     * @param forImage
-     * @throws SaveFailure
-     */
     @Override
     public void save(Metadata metadata, Image forImage) throws SaveFailure
     {
@@ -55,13 +48,6 @@ public class ExifMetadataDelegate extends AMetadataDelegate
         }
     }
 
-    /**
-     * Read the EXIF data from the image into a Metadata object.
-     *
-     * @param fromImage
-     * @return
-     * @throws ReadFailure
-     */
     @Override
     public Metadata read(Image fromImage) throws ReadFailure
     {
