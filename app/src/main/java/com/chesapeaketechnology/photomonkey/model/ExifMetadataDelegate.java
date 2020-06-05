@@ -84,7 +84,7 @@ public class ExifMetadataDelegate extends AMetadataDelegate
             location.setSpeed(0.0f);
         } else
         {
-            location.setSpeed((float) (speed * 1000 / (TimeUnit.HOURS.toSeconds(1))));
+            location.setSpeed((float) (speed * 1000 / TimeUnit.HOURS.toSeconds(1)));
         }
         String description = exif.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
         return new Metadata(description, location, reversed);
