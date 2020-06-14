@@ -77,7 +77,6 @@ public class FileNameGenerator
      */
     public File generate()
     {
-        // TODO: 5/27/20 Ask Christian whether there is a concern about multiple users colliding which file names. Should we add a device id?
         File outputFolder = getRootDirectory();
         File fileName = new File(outputFolder, PREFIX + new SimpleDateFormat(FILE_NAME_FORMAT, Locale.US).format(System.currentTimeMillis()) + EXTENSION);
         Log.d(TAG, String.format("Generated path: %s", fileName.getAbsolutePath()));

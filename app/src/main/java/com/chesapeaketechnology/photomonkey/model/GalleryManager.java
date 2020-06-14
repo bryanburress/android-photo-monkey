@@ -1,5 +1,6 @@
 package com.chesapeaketechnology.photomonkey.model;
 
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -7,9 +8,12 @@ import android.database.Cursor;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.view.Window;
+import android.view.WindowManager;
 
 import com.chesapeaketechnology.photomonkey.PhotoMonkeyApplication;
 import com.chesapeaketechnology.photomonkey.PhotoMonkeyFeatures;
+import com.chesapeaketechnology.photomonkey.R;
 import com.google.common.io.Files;
 
 import java.io.File;
@@ -26,6 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
@@ -148,6 +153,61 @@ public class GalleryManager
                 }
             }
             return uris.stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
+        }
+    }
+
+    /**
+     * Wraps delete method with a confirmation dialog.
+     *
+     * @param context            The UI context in which to display the dialog.
+     * @param mediaUri           The {@link Uri} of the media to delete
+     * @param discardDidComplete A {@link Consumer} that is called when the media is successfully deleted.
+     * @param discardDidCancel   A {@link Consumer} that is called when the delete operation is cancelled by the user.
+     * @param discardDidError    A {@link Consumer} that is called when there is an error deleting the media.
+     */
+    public void discard(Context context,
+                        Uri mediaUri,
+                        Consumer<Uri> discardDidComplete,
+                        Consumer<Uri> discardDidCancel,
+                        Consumer<Exception> discardDidError)
+    {
+        AlertDialog dialog = new AlertDialog.Builder(context, R.style.AlertDialogTheme)
+                .setTitle("Confirm")
+                .setMessage("Delete current photo?")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton(R.string.delete_button_alt, (_dialog, which) -> {
+                    try
+                    {
+                        delete(mediaUri);
+                        if (discardDidComplete != null)
+                        {
+                            discardDidComplete.accept(mediaUri);
+                        }
+                    } catch (GalleryDeleteFailure galleryDeleteFailure)
+                    {
+                        if (discardDidError != null)
+                        {
+                            discardDidError.accept(galleryDeleteFailure);
+                        }
+                    }
+                })
+                .setNegativeButton(android.R.string.no, (dialog1, which) -> {
+                    if (discardDidCancel != null)
+                    {
+                        discardDidCancel.accept(mediaUri);
+                    }
+                })
+                .create();
+        Window window = dialog.getWindow();
+        if (window != null)
+        {
+            window.setFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+            window.getDecorView().setSystemUiVisibility(FLAGS_FULLSCREEN);
+        }
+        dialog.show();
+        if (window != null)
+        {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
         }
     }
 

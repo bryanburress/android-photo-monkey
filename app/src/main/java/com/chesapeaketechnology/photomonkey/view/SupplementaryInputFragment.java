@@ -21,8 +21,11 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.chesapeaketechnology.photomonkey.R;
 import com.chesapeaketechnology.photomonkey.model.AMetadataDelegate;
+import com.chesapeaketechnology.photomonkey.model.GalleryManager;
 import com.chesapeaketechnology.photomonkey.model.Image;
 import com.chesapeaketechnology.photomonkey.model.Metadata;
+
+import java.util.function.Consumer;
 
 /**
  * Provides the necessary form elements for capturing supplementary data about an image
@@ -51,6 +54,7 @@ public class SupplementaryInputFragment extends Fragment
     {
         super.onViewCreated(view, savedInstanceState);
         SharedImageViewModel model = new ViewModelProvider(requireActivity()).get(SharedImageViewModel.class);
+        GalleryManager galleryManager = new GalleryManager();
         EditText descriptionField = view.findViewById(R.id.descriptionField);
         if (model.getImage() != null)
         {
@@ -93,7 +97,31 @@ public class SupplementaryInputFragment extends Fragment
             }
         });
 
-        view.findViewById(R.id.close_button).setOnClickListener(v -> {
+        view.findViewById(R.id.discardButton).setOnClickListener(v -> {
+            if (model.getImage() != null)
+            {
+                Uri mediaUri = model.getImage().getUri();
+                if (mediaUri != null)
+                {
+                    galleryManager.discard(view.getContext(), mediaUri,
+                            (Consumer<Uri>) uri -> {
+                                Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp();
+                            },
+                            (Consumer<Uri>) uri -> {
+                                Log.i(TAG, "User cancelled media delete operation.");
+                            },
+                            (Consumer<Exception>) discardException -> {
+                                Log.e(TAG, String.format("Unable to delete photo. %s", discardException.getMessage()), discardException);
+                                view.post(() -> {
+                                    Toast.makeText(requireContext(), String.format("Unable to delete photo. %s", discardException.getMessage()), Toast.LENGTH_LONG).show();
+                                });
+                            }
+                    );
+                }
+            }
+        });
+
+        view.findViewById(R.id.closeButton).setOnClickListener(v -> {
             Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp();
         });
     }

@@ -10,8 +10,9 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.DisplayManager.DisplayListener;
+import android.media.AudioManager;
+import android.media.MediaActionSound;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -421,6 +422,31 @@ public class CameraFragment extends Fragment
         // Get a stable reference of the modifiable image capture use case
         if (imageCapture != null)
         {
+            container.postDelayed(() -> {
+
+                container.setForeground(new ColorDrawable(Color.WHITE));
+                AudioManager audio = (AudioManager) requireActivity().getSystemService(Context.AUDIO_SERVICE);
+                switch (audio.getRingerMode())
+                {
+                    case AudioManager.RINGER_MODE_NORMAL:
+                        MediaActionSound sound = new MediaActionSound();
+                        sound.play(MediaActionSound.SHUTTER_CLICK);
+                        break;
+                    case AudioManager.RINGER_MODE_SILENT:
+                        break;
+                    case AudioManager.RINGER_MODE_VIBRATE:
+                        break;
+                }
+                container.postDelayed(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        container.setForeground(null);
+                    }
+                }, ANIMATION_FAST_MILLIS);
+            }, ANIMATION_SLOW_MILLIS);
+
             imageCapture.takePicture(cameraExecutor,
                     new ImageCapture.OnImageCapturedCallback()
                     {
@@ -437,10 +463,7 @@ public class CameraFragment extends Fragment
                                 Uri savedUri = image.getUri();
                                 Log.d(TAG, String.format("Photo capture succeeded: %s", savedUri));
                                 // We can only change the foreground Drawable using API level 23+ API
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-                                {
-                                    setGalleryThumbnail(savedUri);
-                                }
+                                setGalleryThumbnail(savedUri);
                                 try
                                 {
                                     image.publish();
@@ -489,21 +512,6 @@ public class CameraFragment extends Fragment
                         }
                     }
             );
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-            {
-                container.postDelayed(() -> {
-                    container.setForeground(new ColorDrawable(Color.WHITE));
-                    container.postDelayed(new Runnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            container.setForeground(null);
-                        }
-                    }, ANIMATION_FAST_MILLIS);
-                }, ANIMATION_SLOW_MILLIS);
-            }
         }
     }
 }

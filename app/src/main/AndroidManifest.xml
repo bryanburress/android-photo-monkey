@@ -27,6 +27,7 @@
             android:name="com.chesapeaketechnology.photomonkey.PhotoMonkeyActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name"
+            android:windowSoftInputMode="stateVisible|adjustResize"
             android:theme="@style/CTIDayNightTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

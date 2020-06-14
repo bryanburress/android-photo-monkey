@@ -62,13 +62,13 @@ public final class PhotoMonkeyConstants
     /**
      * Timing setting for showing a virtual camera flash when taking a picture
      */
-    public static final long ANIMATION_FAST_MILLIS = 50L;
+    public static final long ANIMATION_FAST_MILLIS = 15L;
     public static final double RATIO_16_9_VALUE = 16.0 / 9.0;
     /**
      * The minimum number of milliseconds to wait between location update. Used for high accuracy mode.
      */
     public static final int LOCATION_REFRESH_TIME = 3000; // 3 seconds.
-    public static final long ANIMATION_SLOW_MILLIS = 100L;
+    public static final long ANIMATION_SLOW_MILLIS = 150;
     /**
      * The minimum distance traveled before a location update. Used for high accuracy mode.
      */

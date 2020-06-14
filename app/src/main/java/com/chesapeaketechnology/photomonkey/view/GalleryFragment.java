@@ -1,6 +1,5 @@
 package com.chesapeaketechnology.photomonkey.view;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -10,9 +9,7 @@ import android.view.DisplayCutout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowInsets;
-import android.view.WindowManager;
 import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
@@ -39,8 +36,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
+import java.util.function.Consumer;
 
 /**
  * Fragment responsible for allowing users to see, edit, delete, and share existing photos.
@@ -200,42 +196,25 @@ public class GalleryFragment extends Fragment
             Uri mediaUri = mediaList.get(mediaViewPager.getCurrentItem());
             if (mediaUri != null)
             {
-                AlertDialog dialog = new AlertDialog.Builder(view.getContext(), R.style.AlertDialogTheme)
-                        .setTitle("Confirm")
-                        .setMessage("Delete current photo?")
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setPositiveButton(R.string.delete_button_alt, (_dialog, which) -> {
-                            try
+                galleryManager.discard(view.getContext(), mediaUri,
+                        (Consumer<Uri>) uri -> {
+                            mediaList.remove(mediaViewPager.getCurrentItem());
+                            Objects.requireNonNull(mediaViewPager.getAdapter()).notifyDataSetChanged();
+                            if (mediaList.isEmpty())
                             {
-                                galleryManager.delete(mediaUri);
-                                // Clean out the image from internal list and pager
-                                mediaList.remove(mediaViewPager.getCurrentItem());
-                                Objects.requireNonNull(mediaViewPager.getAdapter()).notifyDataSetChanged();
-                                if (mediaList.isEmpty())
-                                {
-                                    Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp();
-                                }
-                            } catch (SecurityException | GalleryManager.GalleryDeleteFailure se)
-                            {
-                                Log.e(TAG, String.format("Unable to delete photo. %s", se.getMessage()), se);
-                                view.post(() -> {
-                                    Toast.makeText(requireContext(), String.format("Unable to delete photo. %s", se.getMessage()), Toast.LENGTH_LONG).show();
-                                });
+                                Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp();
                             }
-                        })
-                        .setNegativeButton(android.R.string.no, null)
-                        .create();
-                Window window = dialog.getWindow();
-                if (window != null)
-                {
-                    window.setFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
-                    window.getDecorView().setSystemUiVisibility(FLAGS_FULLSCREEN);
-                }
-                dialog.show();
-                if (window != null)
-                {
-                    window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
-                }
+                        },
+                        (Consumer<Uri>) uri -> {
+                            Log.i(TAG, "User cancelled media delete operation.");
+                        },
+                        (Consumer<Exception>) discardException -> {
+                            Log.e(TAG, String.format("Unable to delete photo. %s", discardException.getMessage()), discardException);
+                            view.post(() -> {
+                                Toast.makeText(requireContext(), String.format("Unable to delete photo. %s", discardException.getMessage()), Toast.LENGTH_LONG).show();
+                            });
+                        }
+                );
             }
         });
     }
