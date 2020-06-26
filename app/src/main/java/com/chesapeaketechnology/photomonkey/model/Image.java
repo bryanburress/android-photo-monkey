@@ -1,14 +1,19 @@
 package com.chesapeaketechnology.photomonkey.model;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.util.Log;
 
 import androidx.camera.core.ImageProxy;
 
 import com.chesapeaketechnology.photomonkey.PhotoMonkeyFeatures;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 
 /**
@@ -20,6 +25,7 @@ import java.util.Objects;
  */
 public class Image
 {
+    private static final String TAG = Image.class.getSimpleName();
     private final AMetadataDelegate metadataDelegate;
     private final PublicationDelegate publicationDelegate;
     private Uri uri;
@@ -46,7 +52,7 @@ public class Image
      * image and save the associated {@link Metadata}.
      *
      * @param image The ImageProxy object
-     * @return
+     * @return the Image object created
      * @throws AImageWriter.FormatNotSupportedException If the image parameter is not a JPG.
      * @throws AImageWriter.WriteException              If we are unable to write metadata to the image.
      * @throws AMetadataDelegate.ReadFailure            If we are unable to read metadata from the image.
@@ -142,7 +148,7 @@ public class Image
     /**
      * Save metadata changes to the image.
      *
-     * @param metadata
+     * @param metadata The {@link Metadata} object to save
      * @return the updated Image
      * @throws AMetadataDelegate.SaveFailure if we are unable to save the metadata
      */
@@ -154,9 +160,42 @@ public class Image
     }
 
     /**
+     * Get {@link File} handle to a file that we can access and/or manipulate.  If this is an
+     * image in the MediaStore, a the file will be copied to the external cache directory and
+     * the returned {@link File} will point to that temporary file.
+     *
+     * @param context The {@link Context} in which to access the {@link android.provider.MediaStore}
+     * @return a {@link File} object
+     * @throws IOException if we are unable to write the temporary file.
+     */
+    public File getAccessibleFile(Context context) throws IOException
+    {
+        if ("content".equals(getUri().getScheme()))
+        {
+            // If this is an internal content url, we will need to copy the file to
+            // the external cache folder in order for other applications to access it.
+            ContentResolver resolver = context.getContentResolver();
+            try (InputStream in = resolver.openInputStream(getUri()))
+            {
+                File outputDir = context.getExternalCacheDir();
+                File tempFile = File.createTempFile("tmp_", ".jpg", outputDir);
+                Log.d(TAG, String.format("writeToTempFile: %s", tempFile.getAbsolutePath()));
+                java.nio.file.Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                // This is not guaranteed to work. Have also created a reaper
+                // in the activity onDestroy to clean up stragglers.
+                tempFile.deleteOnExit();
+                return tempFile;
+            }
+        } else
+        {
+            return getFile();
+        }
+    }
+
+    /**
      * Get the {@link Uri} for the image.
      *
-     * @return
+     * @return the {@link Uri}
      */
     public Uri getUri()
     {

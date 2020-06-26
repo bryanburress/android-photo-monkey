@@ -48,18 +48,16 @@ public class ExifMetadataMediaStoreDelegate extends ExifMetadataDelegate
                 ExifInterface exif;
                 if ("content".equals(uri.getScheme()))
                 {
+                    File tempFile = forImage.getAccessibleFile(getContext());
+                    exif = new ExifInterface(tempFile.getAbsolutePath());
+                    writeData(metadata, exif);
                     ContentResolver resolver = getContext().getContentResolver();
-                    try (InputStream in = resolver.openInputStream(uri))
+                    try (OutputStream out = resolver.openOutputStream(uri, "rw"))
                     {
-                        File tempFile = writeToTempFile(in);
-                        exif = new ExifInterface(tempFile.getAbsolutePath());
-                        writeData(metadata, exif);
-                        try (OutputStream out = resolver.openOutputStream(uri, "rw"))
-                        {
-                            Files.copy(tempFile.toPath(), Objects.requireNonNull(out));
-                        }
-                        tempFile.delete();
+                        Files.copy(tempFile.toPath(), Objects.requireNonNull(out));
                     }
+                    //noinspection ResultOfMethodCallIgnored
+                    tempFile.delete();
                 } else
                 {
                     super.save(metadata, forImage);

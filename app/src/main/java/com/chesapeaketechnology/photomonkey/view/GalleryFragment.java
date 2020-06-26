@@ -1,6 +1,5 @@
 package com.chesapeaketechnology.photomonkey.view;
 
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -33,8 +32,6 @@ import com.google.common.base.Throwables;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -141,27 +138,7 @@ public class GalleryFragment extends Fragment
                 try
                 {
                     Image img = Image.create(mediaUri);
-                    File fileHandle;
-                    if ("content".equals(img.getUri().getScheme()))
-                    {
-                        // If this is an internal content url, we will need to copy the file to
-                        // the external cache folder in order for other applications to access it.
-                        ContentResolver resolver = requireContext().getContentResolver();
-                        try (InputStream in = resolver.openInputStream(img.getUri()))
-                        {
-                            File outputDir = requireContext().getExternalCacheDir();
-                            File tempFile = File.createTempFile("tmp_", ".jpg", outputDir);
-                            Log.d(TAG, String.format("writeToTempFile: %s", tempFile.getAbsolutePath()));
-                            java.nio.file.Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                            fileHandle = tempFile;
-                            // This is not guaranteed to work. Have also created a reaper
-                            // in the activity onDestroy to clean up stragglers.
-                            tempFile.deleteOnExit();
-                        }
-                    } else
-                    {
-                        fileHandle = img.getFile();
-                    }
+                    File fileHandle = img.getAccessibleFile(requireContext());
                     Uri uri = FileProvider.getUriForFile(view.getContext(), BuildConfig.APPLICATION_ID + ".provider", fileHandle);
                     // Set the appropriate intent extra, type, action and flags
                     intent.setType("image/jpg");
@@ -208,7 +185,8 @@ public class GalleryFragment extends Fragment
             try
             {
                 Image img = Image.create(mediaUri);
-                img.publish();
+                PublicationDelegate pd = new PublicationDelegate();
+                pd.sendToSyncMonkey(img);
             } catch (AMetadataDelegate.ReadFailure | PublicationDelegate.PublicationFailure e)
             {
                 Log.e(TAG, String.format("Unable to publish photo. %s", e.getMessage()), e);
