@@ -9,5 +9,10 @@ import android.location.Location;
  */
 public interface ILocationUpdateListener
 {
+    /**
+     * Called when a location update has been received.
+     *
+     * @param location a {@link Location} object.
+     */
     void locationUpdated(Location location);
 }

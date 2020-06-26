@@ -40,6 +40,12 @@ public class LocationManager implements LifecycleObserver
     private LocationListener locationListener;
     private List<ILocationUpdateListener> updateListeners = new ArrayList<>();
 
+    /**
+     * Create a new instance of a {@link LocationManager}
+     *
+     * @param context   the android {@link Context} to execute within
+     * @param lifecycle the application {@link Lifecycle}.
+     */
     public LocationManager(Context context, Lifecycle lifecycle)
     {
         this.context = context;
@@ -83,6 +89,9 @@ public class LocationManager implements LifecycleObserver
         updateListeners = new ArrayList<>();
     }
 
+    /**
+     * Deregister internal listener
+     */
     private void deregister()
     {
         if (locationManager != null)
@@ -102,6 +111,13 @@ public class LocationManager implements LifecycleObserver
         }
     }
 
+    /**
+     * Register internal listener for Android location change events.
+     *
+     * @param criteria    the {@link Criteria} for choosing the best location provider.
+     * @param minTime     minimum time interval between location updates, in milliseconds
+     * @param minDistance minimum distance between location updates, in meters
+     */
     private void register(Criteria criteria, long minTime, float minDistance)
     {
         locationListener = new LocationListener()
@@ -158,16 +174,32 @@ public class LocationManager implements LifecycleObserver
         }
     }
 
+    /**
+     * Add a new {@link ILocationUpdateListener}
+     *
+     * @param listener the listener to add
+     */
     public void addUpdateListener(ILocationUpdateListener listener)
     {
         updateListeners.add(listener);
     }
 
+    /**
+     * Remove a listener
+     *
+     * @param listener the {@link ILocationUpdateListener} to remove
+     */
     public void removeUpdateListener(ILocationUpdateListener listener)
     {
         updateListeners.remove(listener);
     }
 
+    /**
+     * Setup the appropriate criteria for the provided {@link LocationTrackingMode}.
+     *
+     * @param mode The {@link LocationTrackingMode} to use as the determinant for creating the criteria.
+     * @return a {@link Criteria} object for use in choosing a location provider.
+     */
     private Criteria getCriteria(LocationTrackingMode mode)
     {
         Criteria criteria = new Criteria();
@@ -193,8 +225,8 @@ public class LocationManager implements LifecycleObserver
      * Provides a multiplier (or 1) that is used to reduce refresh rate
      * and refresh distance when in low power mode.
      *
-     * @param mode
-     * @return
+     * @param mode The {@link LocationTrackingMode} to use as the determinant for the step down
+     * @return an int representing a frequency multiplier
      */
     private int getStepDownMultiplier(LocationTrackingMode mode)
     {
@@ -208,7 +240,7 @@ public class LocationManager implements LifecycleObserver
     /**
      * Switch between location tracking modes
      *
-     * @param mode
+     * @param mode The {@link LocationTrackingMode} to which to switch
      */
     private void switchTo(LocationTrackingMode mode)
     {
