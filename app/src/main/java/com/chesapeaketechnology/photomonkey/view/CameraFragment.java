@@ -272,6 +272,42 @@ public class CameraFragment extends Fragment
         CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(lensFacing).build();
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext());
 
+        // Create a detector to detect pinch to zoom gestures
+        ScaleGestureDetector scaleGestureDetector = new ScaleGestureDetector(requireContext(),
+                new ScaleGestureDetector.SimpleOnScaleGestureListener()
+                {
+                    @Override
+                    public boolean onScale(ScaleGestureDetector detector)
+                    {
+                        ZoomState zoomState = camera.getCameraInfo().getZoomState().getValue();
+                        float currentZoomRatio = (zoomState != null) ? zoomState.getZoomRatio() : 1f;
+                        float delta = detector.getScaleFactor();
+                        camera.getCameraControl().setZoomRatio(currentZoomRatio * delta);
+                        return true;
+                    }
+                });
+
+        // Create a detector that detects tap gestures (helps avoid being triggered by other unrelated gestures).
+        GestureDetector tapGestureDetector = new GestureDetector(requireContext(),
+                new GestureDetector.SimpleOnGestureListener()
+                {
+                    @Override
+                    public boolean onSingleTapUp(MotionEvent event)
+                    {
+                        focusOn(new Point((int) event.getX(), (int) event.getY()));
+                        return true;
+                    }
+                }
+        );
+
+        //TODO: - Implement accessibility support for gestures and taps.
+        viewFinder.setOnTouchListener((v, event) -> {
+            scaleGestureDetector.onTouchEvent(event);
+            tapGestureDetector.onTouchEvent(event);
+            return true;
+        });
+
+        // When camera provider is ready
         cameraProviderFuture.addListener(() -> {
             try
             {
