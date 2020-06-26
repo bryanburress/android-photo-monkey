@@ -325,7 +325,10 @@ public class CameraFragment extends Fragment
                         .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                         // We request aspect ratio but no resolution to match preview config, but letting
                         // CameraX optimize for whatever specific resolution best fits our use cases
-                        .setTargetAspectRatio((int) screenAspectRatio)
+                        .setTargetAspectRatio(screenAspectRatio)
+                        // Set the initial flash mode based on shared view model (retains state in
+                        // transitions between fragments)
+                        .setFlashMode(viewModel.getFlashMode())
                         // Set initial target rotation, we will have to call this again if rotation changes
                         // during the lifecycle of this use case
                         .setTargetRotation(rotation)
@@ -381,6 +384,32 @@ public class CameraFragment extends Fragment
     }
 
     /**
+     * Update the icon on the flash button to correctly reflect the current state.
+     *
+     * @param flashMode   The current flash mode {@link ImageCapture.FlashMode}
+     * @param flashButton A reference to the flash button.
+     */
+    private void updateFlashIcon(int flashMode, ImageButton flashButton)
+    {
+        Drawable flashIcon;
+        switch (flashMode)
+        {
+            case ImageCapture.FLASH_MODE_AUTO:
+                flashIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_flash_auto);
+                break;
+            case ImageCapture.FLASH_MODE_OFF:
+                flashIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_flash_off);
+                break;
+            case ImageCapture.FLASH_MODE_ON:
+                flashIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_flash_on);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + flashMode);
+        }
+        flashButton.setImageDrawable(flashIcon);
+    }
+
+    /**
      * Re-draw the camera UI controls; called every time configuration changes.
      */
     @SuppressLint("StaticFieldLeak")
@@ -413,6 +442,40 @@ public class CameraFragment extends Fragment
                 Toast.makeText(requireContext(), String.format("Unable to find existing images. %s", rootCause.getMessage()), Toast.LENGTH_SHORT).show();
             });
         }
+
+        // Update the flashButton to reflect the current state.
+        ImageButton flashButton = controls.findViewById(R.id.flashButton);
+        updateFlashIcon(viewModel.getFlashMode(), flashButton);
+        // Create a detector that detects tap gestures for the flash button.
+        GestureDetector flashButtonTapDetector = new GestureDetector(requireContext(),
+                new GestureDetector.SimpleOnGestureListener()
+                {
+                    @Override
+                    public boolean onSingleTapUp(MotionEvent event)
+                    {
+                        int flashMode = viewModel.getFlashMode();
+                        flashMode = ++flashMode % 3; // cycle through the 3 flash modes defined on ImageCapture
+                        viewModel.setFlashMode(flashMode);
+                        updateFlashIcon(viewModel.getFlashMode(), flashButton);
+                        return true;
+                    }
+                }
+        );
+        //TODO: - Fix accessibility for on touch
+        // Handle changes to the flash button state.
+        flashButton.setOnTouchListener((v, event) -> flashButtonTapDetector.onTouchEvent(event));
+
+        // Handle changes to the focus button state
+        focusButton = controls.findViewById(R.id.focusButton);
+        focusButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked)
+            {
+                startAutoFocus();
+            } else
+            {
+                focusOn(new Point(viewFinder.getWidth() / 2, viewFinder.getHeight() / 2));
+            }
+        });
 
         // Listener for button used to capture photo
         controls.findViewById(R.id.camera_capture_button).setOnClickListener(v -> takePicture());
@@ -469,6 +532,9 @@ public class CameraFragment extends Fragment
                 }
             }, ANIMATION_FAST_MILLIS);
 
+            // set the flash mode to the current state in the shared view model
+            // flash doesn't work consistently without setting this here.
+            imageCapture.setFlashMode(viewModel.getFlashMode());
             imageCapture.takePicture(cameraExecutor,
                     new ImageCapture.OnImageCapturedCallback()
                     {

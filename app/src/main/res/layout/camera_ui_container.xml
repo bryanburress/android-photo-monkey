@@ -63,4 +63,37 @@
         app:layout_constraintBottom_toBottomOf="parent"
         android:contentDescription="@string/gallery_button_alt" />
 
+    <ImageButton
+        android:id="@+id/flashButton"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="32dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/flash_button"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_flash_on"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ToggleButton
+        android:id="@+id/focusButton"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="32dp"
+        android:background="@drawable/ic_brackets"
+        android:contentDescription="@string/focus_button"
+        android:padding="4dp"
+        android:scaleType="fitCenter"
+        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+        android:textColor="@color/eggshell"
+        android:textOff="@string/autofocus_off"
+        android:textOn="@string/autofocus_on"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

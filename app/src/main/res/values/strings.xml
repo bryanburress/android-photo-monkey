@@ -16,4 +16,9 @@
     <string name="picture_taken">Picture Taken</string>
     <string name="save_button">Save</string>
     <string name="discard_button">Discard Photo</string>
+    <string name="flash_button">flash</string>
+    <string name="focus_button">AutoFocus</string>
+    <string name="autofocus_off">MF</string>
+    <string name="autofocus_on">AF</string>
+    <string name="no_comment">No Comment</string>
 </resources>
