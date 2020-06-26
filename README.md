@@ -33,6 +33,13 @@ Install Android Studio to work on this code.
  * Added compile time feature flags 
  * Modified colors to match corporate theme
 
+##### [0.1.1]() - 2020-05-28
+ * Added Auto Focus, Auto White Balance, and Auto Exposure support
+ * Added Tap to Focus support
+ * Added Pinch to Zoom Support
+ * Added Flash support (Auto, On, & Off)
+ * Added automated removal of temp files
+
 ## Notes
 #### View Exif Data on CLI
 ```exiftool -a -u -g1 ~/Downloads/PM_2020-05-28-18-14-55-624.jpg```
