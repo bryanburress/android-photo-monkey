@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -68,7 +69,6 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
             android:layout_marginEnd="24dp"
-            android:layout_marginBottom="16dp"
             android:autofillHints=""
             android:defaultFocusHighlightEnabled="true"
             android:ems="10"
@@ -77,24 +77,50 @@
             android:scrollHorizontally="false"
             android:singleLine="false"
             android:theme="@style/CTIDayNightTheme"
-            app:layout_constraintBottom_toTopOf="@+id/saveButton"
+            app:layout_constraintBottom_toTopOf="@+id/buttonLayout"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            tools:layout_editor_absoluteY="40dp">
 
             <requestFocus />
         </EditText>
 
-        <Button
-            android:id="@+id/saveButton"
-            style="@android:style/Widget.Material.Button.Colored"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/buttonLayout"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
             android:layout_marginEnd="24dp"
             android:layout_marginBottom="16dp"
-            android:text="@string/save_button"
-            android:theme="@style/CTIDayNightTheme"
+            android:background="@android:color/transparent"
+            android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <!--            <Button-->
+            <!--                android:id="@+id/noCommentButton"-->
+            <!--                style="@android:style/Widget.Material.Button.Colored"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:text="@string/no_comment"-->
+            <!--                android:theme="@style/OutlineDangerButton"-->
+            <!--                android:background="@android:color/transparent"/>-->
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/saveButton"
+                style="@android:style/Widget.Material.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/save_button"
+                android:theme="@style/CTIDayNightTheme" />
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

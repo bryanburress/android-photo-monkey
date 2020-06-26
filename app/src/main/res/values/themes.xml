@@ -17,6 +17,14 @@
         <item name="android:colorAccent">@color/dangerColor</item>
     </style>
 
+    <style name="OutlineDangerButton" parent="@style/Widget.AppCompat.Button.Borderless">
+        <item name="colorAccent">@color/dangerColor</item>
+        <item name="android:colorAccent">@android:color/transparent</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textColor">@color/ctiBlue</item>
+
+    </style>
+
     <style name="EditTextLight" parent="@android:style/Widget.EditText">
         <item name="android:textColor">@drawable/default_text_color</item>
         <item name="android:textColorHighlight">@color/ctiBlue</item>
