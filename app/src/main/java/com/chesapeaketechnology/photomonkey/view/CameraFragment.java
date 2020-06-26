@@ -229,6 +229,9 @@ public class CameraFragment extends Fragment
         // Every time the orientation of device changes, update rotation for use cases
         getDisplayManager().registerDisplayListener(displayListener, null);
 
+        // Create a player for the camera shutter sound effect.
+        shutterSound = MediaPlayer.create(requireContext(), R.raw.camera_shutter_click);
+
         // Wait for the views to be properly laid out
         viewFinder.post(() -> {
             // Keep track of the display in which this view is attached
@@ -423,29 +426,12 @@ public class CameraFragment extends Fragment
         if (imageCapture != null)
         {
             container.postDelayed(() -> {
-
-                container.setForeground(new ColorDrawable(Color.WHITE));
                 AudioManager audio = (AudioManager) requireActivity().getSystemService(Context.AUDIO_SERVICE);
-                switch (audio.getRingerMode())
+                if (audio.getRingerMode() == AudioManager.RINGER_MODE_NORMAL)
                 {
-                    case AudioManager.RINGER_MODE_NORMAL:
-                        MediaActionSound sound = new MediaActionSound();
-                        sound.play(MediaActionSound.SHUTTER_CLICK);
-                        break;
-                    case AudioManager.RINGER_MODE_SILENT:
-                        break;
-                    case AudioManager.RINGER_MODE_VIBRATE:
-                        break;
+                    shutterSound.start();
                 }
-                container.postDelayed(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        container.setForeground(null);
-                    }
-                }, ANIMATION_FAST_MILLIS);
-            }, ANIMATION_SLOW_MILLIS);
+            }, ANIMATION_FAST_MILLIS);
 
             imageCapture.takePicture(cameraExecutor,
                     new ImageCapture.OnImageCapturedCallback()
