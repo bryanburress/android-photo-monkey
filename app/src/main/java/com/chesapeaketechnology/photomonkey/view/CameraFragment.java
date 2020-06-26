@@ -216,6 +216,11 @@ public class CameraFragment extends Fragment
         container = (ConstraintLayout) view;
         viewFinder = container.findViewById(R.id.view_finder);
 
+        // Setup the focus overlay rectangle
+        focusView = container.findViewById(R.id.view_finder_overlay);
+        focusView.setColor(Color.valueOf(Color.WHITE));
+        focusView.setStrokeWidth(FOCUS_STROKE_WIDTH);
+
         // Initialize our background executor
         cameraExecutor = Executors.newSingleThreadExecutor();
 
@@ -253,8 +258,70 @@ public class CameraFragment extends Fragment
     }
 
     /**
+     * Enable Auto Focus, Auto White Balance, and Auto Exposure based
+     * on a point in the center of the screen. Updates every second.
+     * This will disable manual focus if it is engaged.
+     */
+    private void startAutoFocus()
+    {
+        try
+        {
+            // Cancel any existing focus and metering operations
+            camera.getCameraControl().cancelFocusAndMetering();
+            // Update the auto focus button
+            focusButton.setChecked(true);
+
+            CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(lensFacing).build();
+            MeteringPointFactory meteringPointFactory = viewFinder.createMeteringPointFactory(cameraSelector);
+
+            // Create an auto focus point at the center of the screen.
+            float centerX = (float) viewFinder.getWidth() / 2;
+            float centerY = (float) viewFinder.getHeight() / 2;
+            MeteringPoint autoFocusPoint = meteringPointFactory.createPoint(centerX, centerY);
+
+            // Use AutoFocus, AutoExposure, and Auto White Balance
+            int meteringMode = FocusMeteringAction.FLAG_AF | FocusMeteringAction.FLAG_AE | FocusMeteringAction.FLAG_AWB;
+            FocusMeteringAction focusMeteringAction =
+                    new FocusMeteringAction.Builder(autoFocusPoint, meteringMode)
+                            .setAutoCancelDuration(1, TimeUnit.SECONDS)
+                            .build();
+            camera.getCameraControl().startFocusAndMetering(focusMeteringAction);
+
+            // Hide the focus rect when in auto focus mode.
+            focusView.clear();
+        } catch (Throwable t)
+        {
+            Log.e(TAG, "setupCameraUseCases: error in autofocus", t);
+        }
+    }
+
+    /**
+     * While called manual focus, technically, this is still auto focus.  However,
+     * it moves the auto focus point from the center of the screen to the provided
+     * point on the screen.
+     *
+     * @param center the {@link Point} where the AF, AE, & AWB should be determined.
+     */
+    private void focusOn(Point center)
+    {
+        camera.getCameraControl().cancelFocusAndMetering();
+        focusButton.setChecked(false);
+        CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(lensFacing).build();
+        MeteringPointFactory meteringPointFactory = viewFinder.createMeteringPointFactory(cameraSelector);
+        MeteringPoint meteringPoint = meteringPointFactory.createPoint(center.x, center.y);
+        int meteringMode = FocusMeteringAction.FLAG_AF | FocusMeteringAction.FLAG_AE | FocusMeteringAction.FLAG_AWB;
+        FocusMeteringAction tapToFocusMeteringAction =
+                new FocusMeteringAction.Builder(meteringPoint, meteringMode)
+                        .disableAutoCancel()
+                        .build();
+        camera.getCameraControl().startFocusAndMetering(tapToFocusMeteringAction);
+        focusView.setFocusLocation(center, FOCUS_RECT_SIZE);
+    }
+
+    /**
      * Declare and bind preview, capture and analysis use cases
      */
+    @SuppressLint("ClickableViewAccessibility")
     private void bindCameraUseCases()
     {
 
@@ -348,9 +415,14 @@ public class CameraFragment extends Fragment
                     {
                         preview.setSurfaceProvider(viewFinder.createSurfaceProvider(camera.getCameraInfo()));
                     }
+                    // Start auto focus at center of screen
+                    startAutoFocus();
                 } catch (Exception exc)
                 {
                     Log.e(TAG, "Use case binding failed", exc);
+                    viewFinder.post(() -> {
+                        Toast.makeText(requireContext(), String.format("Unable to initialize camera. %s", exc.getMessage()), Toast.LENGTH_SHORT).show();
+                    });
                 }
             } catch (ExecutionException | InterruptedException e)
             {
@@ -412,7 +484,7 @@ public class CameraFragment extends Fragment
     /**
      * Re-draw the camera UI controls; called every time configuration changes.
      */
-    @SuppressLint("StaticFieldLeak")
+    @SuppressLint("ClickableViewAccessibility")
     private void updateCameraUi()
     {
 

@@ -1,6 +1,7 @@
 package com.chesapeaketechnology.photomonkey;
 
 import android.Manifest;
+import android.util.Size;
 import android.view.View;
 
 import java.util.Collections;
@@ -59,16 +60,25 @@ public final class PhotoMonkeyConstants
      * Used for the portrait and landscape aspect ratio in the image preview and camera capture
      */
     public static final double RATIO_4_3_VALUE = 4.0 / 3.0;
-    /**
-     * Timing setting for showing a virtual camera flash when taking a picture
-     */
-    public static final long ANIMATION_FAST_MILLIS = 15L;
     public static final double RATIO_16_9_VALUE = 16.0 / 9.0;
+    /**
+     * Timing setting for effects related to the camera.
+     */
+    public static final long ANIMATION_FAST_MILLIS = 100;
+    public static final long ANIMATION_SLOW_MILLIS = 250;
+
+    /**
+     * Attributed related to the on screen focus rectangle
+     */
+    public static final int FOCUS_STROKE_WIDTH = 8;
+    public static final int FOCUS_RECT_WIDTH = 250;
+    public static final int FOCUS_RECT_HEIGHT = 250;
+    public static final Size FOCUS_RECT_SIZE = new Size(FOCUS_RECT_WIDTH, FOCUS_RECT_HEIGHT);
+
     /**
      * The minimum number of milliseconds to wait between location update. Used for high accuracy mode.
      */
     public static final int LOCATION_REFRESH_TIME = 3000; // 3 seconds.
-    public static final long ANIMATION_SLOW_MILLIS = 150;
     /**
      * The minimum distance traveled before a location update. Used for high accuracy mode.
      */
