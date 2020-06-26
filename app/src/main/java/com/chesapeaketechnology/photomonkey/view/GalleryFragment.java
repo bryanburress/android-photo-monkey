@@ -1,5 +1,6 @@
 package com.chesapeaketechnology.photomonkey.view;
 
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -10,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
-import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -30,9 +30,11 @@ import com.chesapeaketechnology.photomonkey.model.GalleryManager;
 import com.chesapeaketechnology.photomonkey.model.Image;
 import com.chesapeaketechnology.photomonkey.model.PublicationDelegate;
 import com.google.common.base.Throwables;
-import com.google.common.io.Files;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -61,7 +63,6 @@ public class GalleryFragment extends Fragment
         setRetainInstance(true);
 
         //Get images from the gallery manager and load into list.
-        // TODO: 5/27/20 Look at when this needs to be refreshed.
         try
         {
             mediaList = galleryManager.getMedia();
@@ -137,21 +138,47 @@ public class GalleryFragment extends Fragment
             {
                 // Create a sharing intent
                 Intent intent = new Intent();
-                // Infer media type from file extension
-                File mediaFile = new File(mediaUri.getPath());
-                //noinspection UnstableApiUsage
-                String extension = Files.getFileExtension(mediaFile.getName());
-                String mediaType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-                Uri uri = FileProvider.getUriForFile(view.getContext(), BuildConfig.APPLICATION_ID + ".provider", mediaFile);
-                // Set the appropriate intent extra, type, action and flags
-                intent.putExtra(Intent.EXTRA_STREAM, uri);
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.setAction(Intent.ACTION_SEND);
-                intent.setType(mediaType);
+                try
+                {
+                    Image img = Image.create(mediaUri);
+                    File fileHandle;
+                    if ("content".equals(img.getUri().getScheme()))
+                    {
+                        // If this is an internal content url, we will need to copy the file to
+                        // the external cache folder in order for other applications to access it.
+                        ContentResolver resolver = requireContext().getContentResolver();
+                        try (InputStream in = resolver.openInputStream(img.getUri()))
+                        {
+                            File outputDir = requireContext().getExternalCacheDir();
+                            File tempFile = File.createTempFile("tmp_", ".jpg", outputDir);
+                            Log.d(TAG, String.format("writeToTempFile: %s", tempFile.getAbsolutePath()));
+                            java.nio.file.Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                            fileHandle = tempFile;
+                            // This is not guaranteed to work. Have also created a reaper
+                            // in the activity onDestroy to clean up stragglers.
+                            tempFile.deleteOnExit();
+                        }
+                    } else
+                    {
+                        fileHandle = img.getFile();
+                    }
+                    Uri uri = FileProvider.getUriForFile(view.getContext(), BuildConfig.APPLICATION_ID + ".provider", fileHandle);
+                    // Set the appropriate intent extra, type, action and flags
+                    intent.setType("image/jpg");
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.setAction(Intent.ACTION_SEND);
+                    intent.putExtra(Intent.EXTRA_STREAM, uri);
 
-                // Launch the intent letting the user choose which app to share with
-                startActivity(Intent.createChooser(intent, "Share using"));
+                    // Launch the intent letting the user choose which app to share with
+                    startActivity(Intent.createChooser(intent, "Share using"));
+                } catch (AMetadataDelegate.ReadFailure | IOException shareFailure)
+                {
+                    Log.e(TAG, "bindCameraUseCases: Unable to get create share intent", shareFailure);
+                    requireView().post(() -> {
+                        Toast.makeText(requireContext(), String.format("Unable to share photo. %s", shareFailure.getMessage()), Toast.LENGTH_SHORT).show();
+                    });
+                }
             }
         });
 
@@ -220,7 +247,7 @@ public class GalleryFragment extends Fragment
     }
 
     /**
-     * Paging adapter for the images in the gallery
+     * Paging adapter for the images in the gallery.
      *
      * @since 0.2.0
      */

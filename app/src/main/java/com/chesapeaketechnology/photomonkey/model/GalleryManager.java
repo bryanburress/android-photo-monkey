@@ -7,16 +7,19 @@ import android.content.Context;
 import android.database.Cursor;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.chesapeaketechnology.photomonkey.BuildConfig;
 import com.chesapeaketechnology.photomonkey.PhotoMonkeyApplication;
 import com.chesapeaketechnology.photomonkey.PhotoMonkeyFeatures;
 import com.chesapeaketechnology.photomonkey.R;
 import com.google.common.io.Files;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -44,6 +47,11 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
 public class GalleryManager
 {
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
+
+    public static String getMediaStoreRelativePath()
+    {
+        return Paths.get(Environment.DIRECTORY_PICTURES, "PhotoMonkey").toString();
+    }
 
     public GalleryManager()
     {
@@ -134,14 +142,21 @@ public class GalleryManager
             List<Uri> uris = new ArrayList<>();
             ContentResolver resolver = PhotoMonkeyApplication.getContext().getContentResolver();
             final String sortOrder;
+            final String selectionClause;
+            final String[] selectionArgs;
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q)
             {
+                // Sort the images from most recent to least recent
                 sortOrder = MediaStore.Images.ImageColumns.DATE_TAKEN + " DESC";
+
+                // Filter the images to those take with this application.
+                selectionClause = MediaStore.Images.ImageColumns.OWNER_PACKAGE_NAME + " = ?";
+                selectionArgs = new String[]{BuildConfig.APPLICATION_ID};
             } else
             {
-                sortOrder = MediaStore.Images.ImageColumns.DATE_MODIFIED + " DESC";
+                throw new RuntimeException("Unsupported Android version.  Must be Q or greater to use MediaStore storage.  Consider configuring for External Media Storage.");
             }
-            try (Cursor cursor = resolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, sortOrder))
+            try (Cursor cursor = resolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, selectionClause, selectionArgs, sortOrder))
             {
                 cursor.moveToFirst();
                 while (!cursor.isAfterLast())
@@ -242,6 +257,9 @@ public class GalleryManager
         return true;
     }
 
+    /**
+     * Indicates there was an issue accessing images in the gallery.
+     */
     public static class GalleryAccessFailure extends Exception
     {
         public GalleryAccessFailure(String message)
@@ -255,6 +273,9 @@ public class GalleryManager
         }
     }
 
+    /**
+     * Indicates there was an issue removing images from the gallery.
+     */
     public static class GalleryDeleteFailure extends Exception
     {
         public GalleryDeleteFailure(String message)
