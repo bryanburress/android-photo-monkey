@@ -7,33 +7,43 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
+import android.graphics.Point;
+import android.graphics.drawable.Drawable;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.DisplayManager.DisplayListener;
 import android.media.AudioManager;
-import android.media.MediaActionSound;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.camera.core.AspectRatio;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.FocusMeteringAction;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.ImageProxy;
+import androidx.camera.core.MeteringPoint;
+import androidx.camera.core.MeteringPointFactory;
 import androidx.camera.core.Preview;
+import androidx.camera.core.ZoomState;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -56,6 +66,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
 import static java.lang.Integer.max;
@@ -72,20 +83,18 @@ import static java.lang.Math.*;
 public class CameraFragment extends Fragment
 {
     private static final String TAG = CameraFragment.class.getSimpleName();
+
+    private final CameraFragment this_fragment = this;
+    private LocalBroadcastManager broadcastManager;
+    private PreviewView viewFinder;
+    private ImageCapture imageCapture;
+    private Camera camera;
+    private SharedImageViewModel viewModel;
     /**
      * We need a display listener for orientation changes that do not trigger a configuration
      * change, for example if we choose to override config change in manifest or for 180-degree
      * orientation changes.
      */
-
-    private final CameraFragment this_fragment = this;
-    private LocalBroadcastManager broadcastManager;
-    private ConstraintLayout container;
-    private PreviewView viewFinder;
-    private ImageCapture imageCapture;
-    private Camera camera;
-    private SharedImageViewModel viewModel;
-    private int displayId = -1;
     private final DisplayListener displayListener = new DisplayListener()
     {
         @Override
@@ -112,11 +121,18 @@ public class CameraFragment extends Fragment
             }
         }
     };
+    private FrameLayout container;
+    private FocusRectangleView focusView;
+    private MediaPlayer shutterSound;
+    private ToggleButton focusButton;
     private int lensFacing = CameraSelector.LENS_FACING_BACK;
     private Preview preview;
+    private int displayId = -1;
     private ExecutorService cameraExecutor;
     /**
-     * Handle presses of the volume down hardware button.
+     * Takes picture when the volume down hardware button is pressed.
+     * <p>
+     * This event is caught and rebroadcast by the Activity.
      */
     private final BroadcastReceiver volumeDownReceiver = new BroadcastReceiver()
     {
@@ -131,6 +147,11 @@ public class CameraFragment extends Fragment
     {
     }
 
+    /**
+     * Get the display manager service so we can listen for display change events.
+     *
+     * @return the {@link DisplayManager} system service
+     */
     private DisplayManager getDisplayManager()
     {
         return (DisplayManager) requireContext().getSystemService(Context.DISPLAY_SERVICE);
@@ -175,29 +196,24 @@ public class CameraFragment extends Fragment
     /**
      * Set the thumbnail used in the gallery button in the user interface.
      *
-     * @param uri
+     * @param uri the {@link Uri} for the image to display.
      */
     private void setGalleryThumbnail(Uri uri)
     {
         // Reference of the view that holds the gallery thumbnail
         ImageView thumbnail = container.findViewById(R.id.photo_view_button);
-        thumbnail.post(new Runnable()
-        {
-            @Override
-            public void run()
+        thumbnail.post(() -> {
+            Uri imageUri = uri;
+            if (imageUri.getScheme() == null)
             {
-                Uri imageUri = uri;
-                if (imageUri.getScheme() == null)
-                {
-                    imageUri = Uri.parse("file://" + imageUri.getPath());
-                }
-                int dimension = (int) getResources().getDimension(R.dimen.stroke_small);
-                thumbnail.setPadding(dimension, dimension, dimension, dimension);
-                Glide.with(thumbnail)
-                        .load(imageUri)
-                        .apply(RequestOptions.circleCropTransform())
-                        .into(thumbnail);
+                imageUri = Uri.parse("file://" + imageUri.getPath());
             }
+            int dimension = (int) getResources().getDimension(R.dimen.stroke_small);
+            thumbnail.setPadding(dimension, dimension, dimension, dimension);
+            Glide.with(thumbnail)
+                    .load(imageUri)
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(thumbnail);
         });
     }
 
@@ -213,7 +229,7 @@ public class CameraFragment extends Fragment
         LocationManager locationManager = ((ILocationManagerProvider) requireActivity()).getLocationManager();
         viewModel.setLocationManager(locationManager);
 
-        container = (ConstraintLayout) view;
+        container = (FrameLayout) view;
         viewFinder = container.findViewById(R.id.view_finder);
 
         // Setup the focus overlay rectangle
@@ -222,11 +238,11 @@ public class CameraFragment extends Fragment
         focusView.setStrokeWidth(FOCUS_STROKE_WIDTH);
 
         // Initialize our background executor
-        cameraExecutor = Executors.newSingleThreadExecutor();
-
-        broadcastManager = LocalBroadcastManager.getInstance(view.getContext());
+        cameraExecutor = Executors.newCachedThreadPool();
 
         // Set up the intent filter that will receive events from our main activity
+        // Used take pictures when volume down is pressed.
+        broadcastManager = LocalBroadcastManager.getInstance(view.getContext());
         IntentFilter filter = new IntentFilter();
         filter.addAction(KEY_EVENT_ACTION);
         broadcastManager.registerReceiver(volumeDownReceiver, filter);
@@ -330,8 +346,8 @@ public class CameraFragment extends Fragment
         viewFinder.getDisplay().getRealMetrics(metrics);
         Log.d(TAG, String.format("Screen metrics: %d x %d", metrics.widthPixels, metrics.heightPixels));
 
-        double screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels);
-        Log.d(TAG, String.format("Preview aspect ratio: %f", screenAspectRatio));
+        int screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels);
+        Log.d(TAG, String.format("Preview aspect ratio: %d", screenAspectRatio));
 
         int rotation = viewFinder.getDisplay().getRotation();
 
@@ -382,14 +398,14 @@ public class CameraFragment extends Fragment
                 // setup the Preview
                 preview = new Preview.Builder()
                         // We request aspect ratio but no resolution
-                        .setTargetAspectRatio((int) screenAspectRatio)
+                        .setTargetAspectRatio(screenAspectRatio)
                         // Set initial target rotation
                         .setTargetRotation(rotation)
                         .build();
 
                 // configure the ImageCapture component
                 imageCapture = new ImageCapture.Builder()
-                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
                         // We request aspect ratio but no resolution to match preview config, but letting
                         // CameraX optimize for whatever specific resolution best fits our use cases
                         .setTargetAspectRatio(screenAspectRatio)
@@ -440,6 +456,7 @@ public class CameraFragment extends Fragment
      * <p>
      * Detecting the most suitable ratio for dimensions provided in @params by counting absolute
      * of preview ratio to one of the provided values.
+     * </p>
      *
      * @param width  - preview width
      * @param height - preview height
@@ -487,7 +504,6 @@ public class CameraFragment extends Fragment
     @SuppressLint("ClickableViewAccessibility")
     private void updateCameraUi()
     {
-
         // Remove previous UI if any
         View tmpView = container.findViewById(R.id.camera_ui_container);
         if (tmpView != null)
@@ -498,7 +514,7 @@ public class CameraFragment extends Fragment
         // Inflate a new view containing all UI for controlling the camera
         View controls = View.inflate(requireContext(), R.layout.camera_ui_container, container);
 
-        // In the background, load latest photo taken (if any) for gallery thumbnail
+        // Load latest photo taken (if any) for gallery thumbnail
         try
         {
             Uri latestUri = new GalleryManager().getLatest();
@@ -593,7 +609,6 @@ public class CameraFragment extends Fragment
      */
     private void takePicture()
     {
-        // Get a stable reference of the modifiable image capture use case
         if (imageCapture != null)
         {
             container.postDelayed(() -> {
@@ -616,16 +631,17 @@ public class CameraFragment extends Fragment
                             Image image;
                             try
                             {
+                                // create an image model object
                                 image = Image.create(imageProxy);
                                 viewModel.setImage(image);
                                 // if the current value of lensFacing is front, then the image is horizontally reversed.
                                 viewModel.setReversed((lensFacing == CameraSelector.LENS_FACING_FRONT));
                                 Uri savedUri = image.getUri();
                                 Log.d(TAG, String.format("Photo capture succeeded: %s", savedUri));
-                                // We can only change the foreground Drawable using API level 23+ API
                                 setGalleryThumbnail(savedUri);
                                 try
                                 {
+                                    // Publish the image to other services
                                     image.publish();
                                 } catch (PublicationDelegate.PublicationFailure publicationFailure)
                                 {
@@ -634,6 +650,7 @@ public class CameraFragment extends Fragment
                                         Toast.makeText(requireContext(), String.format("Unable to publish image. %s", publicationFailure.getMessage()), Toast.LENGTH_LONG).show();
                                     });
                                 }
+                                // Automatically navigate to edit the supplementary data.
                                 Navigation.findNavController(requireActivity(), R.id.fragment_container)
                                         .navigate(CameraFragmentDirections.actionCameraFragmentToSupplementaryInputFragment());
                             } catch (ImageFileWriter.FormatNotSupportedException unlikely)

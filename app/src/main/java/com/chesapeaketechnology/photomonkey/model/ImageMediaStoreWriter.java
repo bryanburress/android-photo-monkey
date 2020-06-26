@@ -5,7 +5,6 @@ import android.content.ContentValues;
 import android.graphics.ImageFormat;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.provider.MediaStore;
 
 import androidx.camera.core.ImageProxy;
@@ -15,7 +14,6 @@ import com.chesapeaketechnology.photomonkey.PhotoMonkeyApplication;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Paths;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -52,8 +50,6 @@ public class ImageMediaStoreWriter extends AImageWriter
     @Override
     public Uri write(ImageProxy image) throws FormatNotSupportedException, WriteException
     {
-
-        // TODO: 5/26/20 Move off of the ui thread
         if (image.getFormat() == ImageFormat.JPEG)
         {
             try
@@ -66,7 +62,7 @@ public class ImageMediaStoreWriter extends AImageWriter
 
                         FileNameGenerator generator = new FileNameGenerator();
                         String title = generator.generate().getName();
-                        String relativePath = Paths.get(Environment.DIRECTORY_PICTURES, "PhotoMonkey").toString();
+                        String relativePath = GalleryManager.getMediaStoreRelativePath();
                         contentValues.put(MediaStore.MediaColumns.TITLE, title);
                         contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileNameGenerator.generate().getName());
                         contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg");

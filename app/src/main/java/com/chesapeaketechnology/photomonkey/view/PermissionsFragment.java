@@ -29,6 +29,12 @@ public class PermissionsFragment extends Fragment
     {
     }
 
+    /**
+     * Check of the application has the permissions defined in {@link com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants#PERMISSIONS_REQUIRED}.
+     *
+     * @param context The {@link Context} in which to verify the permissions.
+     * @return boolean true if permitted, otherwise false.
+     */
     public static boolean hasPermissions(Context context)
     {
         return Arrays.stream(PERMISSIONS_REQUIRED).allMatch(p -> {

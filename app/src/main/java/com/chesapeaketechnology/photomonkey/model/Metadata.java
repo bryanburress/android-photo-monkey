@@ -11,14 +11,17 @@ import androidx.annotation.NonNull;
  */
 public class Metadata
 {
-    private Location location;
-    private boolean reversed;
-    private String description;
+    private final Location location;
+    private final boolean reversed;
+    private final String description;
 
-    public Metadata()
-    {
-    }
-
+    /**
+     * Create a new metadata object.
+     *
+     * @param description The image description.
+     * @param location    The location the image was taken.
+     * @param reversed    Is the image reversed (lens).
+     */
     public Metadata(String description, Location location, boolean reversed)
     {
         this.location = location;
@@ -26,36 +29,41 @@ public class Metadata
         this.description = description;
     }
 
+    /**
+     * Get the location the image was taken.
+     *
+     * @return a {@link Location} object representing the location the image was taken.
+     */
     public Location getLocation()
     {
         return location;
     }
 
-    public void setLocation(Location location)
-    {
-        this.location = location;
-    }
-
+    /**
+     * Get the description of the image.
+     *
+     * @return a {@link String} description of the image.
+     */
     public String getDescription()
     {
         return description;
     }
 
-    public void setDescription(String description)
-    {
-        this.description = description;
-    }
-
+    /**
+     * Is the image reversed (used the front facing lens)?
+     *
+     * @return a boolean value representing whether the image is reversed.
+     */
     public boolean isReversed()
     {
         return reversed;
     }
 
-    public void setReversed(boolean reversed)
-    {
-        this.reversed = reversed;
-    }
-
+    /**
+     * Generate a string representation of this metadata object.
+     *
+     * @return a String.
+     */
     @Override
     public @NonNull
     String toString()

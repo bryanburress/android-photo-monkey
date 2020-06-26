@@ -19,6 +19,7 @@ public class SharedImageViewModel extends ViewModel implements ILocationUpdateLi
     private LocationManager locationManager;
     private Location lastLocation;
     private boolean isReversed;
+    private int flashMode;
 
     public SharedImageViewModel()
     {
@@ -55,7 +56,15 @@ public class SharedImageViewModel extends ViewModel implements ILocationUpdateLi
         locationManager.addUpdateListener(this);
     }
 
-    // TODO: 5/23/20 Where to remove listener?
+    public int getFlashMode()
+    {
+        return flashMode;
+    }
+
+    public void setFlashMode(int flashMode)
+    {
+        this.flashMode = flashMode;
+    }
 
     @Override
     public void locationUpdated(Location location)

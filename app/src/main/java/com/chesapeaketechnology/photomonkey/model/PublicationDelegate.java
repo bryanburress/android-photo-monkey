@@ -64,6 +64,9 @@ public class PublicationDelegate
         }
     }
 
+    /**
+     * Indicates there was an error publishing the image.
+     */
     public static class PublicationFailure extends Exception
     {
         public PublicationFailure(String message)

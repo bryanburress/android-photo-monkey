@@ -53,6 +53,7 @@ public class SupplementaryInputFragment extends Fragment
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
     {
         super.onViewCreated(view, savedInstanceState);
+        // Get a handle to the shared view model
         SharedImageViewModel model = new ViewModelProvider(requireActivity()).get(SharedImageViewModel.class);
         GalleryManager galleryManager = new GalleryManager();
         EditText descriptionField = view.findViewById(R.id.descriptionField);
@@ -60,6 +61,7 @@ public class SupplementaryInputFragment extends Fragment
         {
             ImageView imageView = view.findViewById(R.id.backgroundPreview);
             Uri imageUri = model.getImage().getUri();
+            // Add a file scheme prefix if not scheme present
             if (imageUri.getScheme() == null)
             {
                 imageUri = Uri.parse("file://" + imageUri.getPath());
@@ -79,6 +81,7 @@ public class SupplementaryInputFragment extends Fragment
                 descriptionField.setText("");
             }
         }
+        // ***** Save *****
         view.findViewById(R.id.saveButton).setOnClickListener(e -> {
             try
             {
@@ -97,6 +100,7 @@ public class SupplementaryInputFragment extends Fragment
             }
         });
 
+        // ***** Discard Button *****
         view.findViewById(R.id.discardButton).setOnClickListener(v -> {
             if (model.getImage() != null)
             {
@@ -121,6 +125,7 @@ public class SupplementaryInputFragment extends Fragment
             }
         });
 
+        // ***** Close Without Description *****
         view.findViewById(R.id.closeButton).setOnClickListener(v -> {
             Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp();
         });

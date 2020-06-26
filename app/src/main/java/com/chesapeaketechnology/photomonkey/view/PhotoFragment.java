@@ -27,6 +27,12 @@ public class PhotoFragment extends Fragment
     {
     }
 
+    /**
+     * Create a {@link PhotoFragment} for a given image {@link Uri}.
+     *
+     * @param imageUri The {@linl Uri} for the image.
+     * @return a {@link PhotoFragment} object with the provided image.
+     */
     static PhotoFragment create(Uri imageUri)
     {
         PhotoFragment frag = new PhotoFragment();
@@ -47,16 +53,20 @@ public class PhotoFragment extends Fragment
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
     {
         super.onViewCreated(view, savedInstanceState);
+
+        // Retrieve the image uri from the file name passed on the transition.
         Bundle args = getArguments();
         if (args == null) return;
         String path = args.getString(FILE_NAME_KEY);
         Uri imageUri = Uri.parse(path);
+        // add a file scheme prefix if the path is an absolute file path.
         if (imageUri.getScheme() == null)
         {
             imageUri = Uri.parse("file://" + imageUri.getPath());
         }
         if (imageUri == null)
         {
+            // Render the default icon if the uri is null
             Glide.with(view).load(R.drawable.ic_photo).centerCrop().into((ImageView) view);
         } else
         {

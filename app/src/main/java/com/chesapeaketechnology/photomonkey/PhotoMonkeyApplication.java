@@ -14,6 +14,11 @@ public class PhotoMonkeyApplication extends Application
 {
     private static Application instance;
 
+    /**
+     * Get Application level {@link Context}.
+     *
+     * @return application level {@link Context}
+     */
     public static Context getContext()
     {
         return instance.getApplicationContext();

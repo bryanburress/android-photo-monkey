@@ -46,11 +46,17 @@ public abstract class AMetadataDelegate
      */
     abstract Metadata read(Image fromImage) throws ReadFailure;
 
+    /**
+     * Currently, the only supported persistence strategy is EXIF.
+     */
     public enum PersistenceStrategy
     {
         EXIF
     }
 
+    /**
+     * Indicates that there was an issue saving the image metadata.
+     */
     public static class SaveFailure extends Exception
     {
         public SaveFailure(String message)
@@ -64,6 +70,9 @@ public abstract class AMetadataDelegate
         }
     }
 
+    /**
+     * Indicates there was an issue reading the image metadata.
+     */
     public static class ReadFailure extends Exception
     {
         public ReadFailure(String message)

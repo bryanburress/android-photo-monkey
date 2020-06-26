@@ -1,6 +1,7 @@
 package com.chesapeaketechnology.photomonkey.model;
 
 import android.content.ContentResolver;
+import android.content.Context;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -105,6 +106,13 @@ public class ExifMetadataMediaStoreDelegate extends ExifMetadataDelegate
         }
     }
 
+    /**
+     * Writes an {@link InputStream} to a temporary file in the {@link Context#getExternalCacheDir()} folder.
+     *
+     * @param in The {@link InputStream} to write into a temporary file.
+     * @return A {@link File} object referencing the temporary file that was created.
+     * @throws IOException if we were unable to copy the input stream to the temporary file
+     */
     private File writeToTempFile(InputStream in) throws IOException
     {
         File outputDir = getContext().getExternalCacheDir();

@@ -153,20 +153,30 @@ public class Image
         return this;
     }
 
+    /**
+     * Get the {@link Uri} for the image.
+     *
+     * @return
+     */
     public Uri getUri()
     {
         return uri;
     }
 
+    /**
+     * Set the {@link Uri} for the image.
+     *
+     * @param uri the image {@link Uri}.
+     */
     public void setUri(Uri uri)
     {
         this.uri = uri;
     }
 
     /**
-     * Publish, or share, the image with other applications on the system.
+     * Publish, or share, the image with other applications on the system via a {@link PublicationDelegate}.
      *
-     * @throws PublicationDelegate.PublicationFailure
+     * @throws PublicationDelegate.PublicationFailure if there was an error publishing the image.
      */
     public void publish() throws PublicationDelegate.PublicationFailure
     {

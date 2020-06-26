@@ -15,8 +15,8 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Provides tools for generating new file names and finding the path where they should be
- * written or read.
+ * Generates file names and determines the path where images are stored if we are not using
+ * the MediaStore. MediaStore usage is configured in {@link com.chesapeaketechnology.photomonkey.PhotoMonkeyFeatures}.
  *
  * @since 0.2.0
  */
