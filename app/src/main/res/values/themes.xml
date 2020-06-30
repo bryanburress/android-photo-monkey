@@ -45,4 +45,15 @@
         <item name="android:textColor">@color/dangerColor</item>
     </style>
 
+    <style name="Widget.Button.FocusToggle" parent="android:Widget">
+        <item name="android:background">@drawable/ic_focus_bg</item>
+        <item name="android:disabledAlpha">?android:attr/disabledAlpha</item>
+    </style>
+
+    <style name="focusButton" parent="android:Theme.Black">
+        <item name="android:buttonStyleToggle">@style/Widget.Button.FocusToggle</item>
+        <item name="android:textOn" />
+        <item name="android:textOff" />
+    </style>
+
 </resources>

@@ -429,7 +429,7 @@ public class CameraFragment extends Fragment
                     // Attach the viewfinder's surface provider to preview use case
                     if (preview != null)
                     {
-                        preview.setSurfaceProvider(viewFinder.createSurfaceProvider(camera.getCameraInfo()));
+                        preview.setSurfaceProvider(viewFinder.createSurfaceProvider());
                     }
                     // Start auto focus at center of screen
                     startAutoFocus();
@@ -611,13 +611,13 @@ public class CameraFragment extends Fragment
     {
         if (imageCapture != null)
         {
-            container.postDelayed(() -> {
-                AudioManager audio = (AudioManager) requireActivity().getSystemService(Context.AUDIO_SERVICE);
-                if (audio.getRingerMode() == AudioManager.RINGER_MODE_NORMAL)
-                {
-                    shutterSound.start();
-                }
-            }, ANIMATION_FAST_MILLIS);
+//            container.postDelayed(() -> {
+//                AudioManager audio = (AudioManager) requireActivity().getSystemService(Context.AUDIO_SERVICE);
+//                if (audio.getRingerMode() == AudioManager.RINGER_MODE_NORMAL)
+//                {
+//                    shutterSound.start();
+//                }
+//            }, ANIMATION_FAST_MILLIS);
 
             // set the flash mode to the current state in the shared view model
             // flash doesn't work consistently without setting this here.
@@ -628,6 +628,12 @@ public class CameraFragment extends Fragment
                         @Override
                         public void onCaptureSuccess(@NonNull ImageProxy imageProxy)
                         {
+                            AudioManager audio = (AudioManager) requireActivity().getSystemService(Context.AUDIO_SERVICE);
+                            if (audio.getRingerMode() == AudioManager.RINGER_MODE_NORMAL)
+                            {
+                                shutterSound.start();
+                            }
+
                             Image image;
                             try
                             {

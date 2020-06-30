@@ -91,18 +91,18 @@ class FocusRectangleView extends View
      */
     private void createBracketEffect(Size size)
     {
-        double bracket_size_pct = 0.16;
-        int horizontal_size = (int) (size.getWidth() * bracket_size_pct);
-        int horizontal_offset = size.getWidth() - (horizontal_size * 2);
-        int vertical_size = (int) (size.getHeight() * bracket_size_pct);
-        int vertical_offset = size.getHeight() - (vertical_size * 2);
+        double bracketSizePct = 0.16;
+        int horizontalSize = (int) (size.getWidth() * bracketSizePct);
+        int horizontalOffset = size.getWidth() - (horizontalSize * 2);
+        int verticalSize = (int) (size.getHeight() * bracketSizePct);
+        int verticalOffset = size.getHeight() - (verticalSize * 2);
 
         pathEffect = new DashPathEffect(
                 new float[]{
-                        horizontal_size, horizontal_offset, horizontal_size, 0,
-                        vertical_size, vertical_offset, vertical_size, 0,
-                        horizontal_size, horizontal_offset, horizontal_size, 0,
-                        vertical_size, vertical_size, vertical_offset, 0},
+                        horizontalSize, horizontalOffset, horizontalSize, 0,
+                        verticalSize, verticalOffset, verticalSize, 0,
+                        horizontalSize, horizontalOffset, horizontalSize, 0,
+                        verticalSize, verticalOffset, verticalSize, 0},
                 0);
     }
 
