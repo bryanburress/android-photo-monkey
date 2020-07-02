@@ -10,10 +10,14 @@ import java.util.List;
 /**
  * Provides constant values used to configure various aspects of the application.
  *
- * @since 0.2.0
+ * @since 0.1.0
  */
 public final class PhotoMonkeyConstants
 {
+    private PhotoMonkeyConstants()
+    {
+    }
+
     /**
      * The prefix to add the be beginning of each photo taken with this app.
      */
@@ -78,25 +82,28 @@ public final class PhotoMonkeyConstants
     /**
      * The minimum number of milliseconds to wait between location update. Used for high accuracy mode.
      */
-    public static final int LOCATION_REFRESH_TIME = 3000; // 3 seconds.
+    public static final int LOCATION_REFRESH_TIME_MS = 3000; // 3 seconds.
     /**
      * The minimum distance traveled before a location update. Used for high accuracy mode.
      */
-    public static final int LOCATION_REFRESH_DISTANCE = 30; // 30 meters.
+    public static final int LOCATION_REFRESH_DISTANCE_METERS = 30;
     /**
      * Timeouts used for asynchronous blocking access to media files
      */
-    public static final int SINGLE_FILE_IO_TIMEOUT = 10; //in seconds
+    public static final int SINGLE_FILE_IO_TIMEOUT_SECONDS = 10;
     /**
      * Configurations for SyncMonkey sharing intents
      */
-    public static final String SYNC_MONKEY_ACTION = "com.chesapeaketechnology.sycnmonkey.action.SEND_FILE_NO_UI";
-    public static final int MULTI_FILE_IO_TIMEOUT = 30; //in seconds
+    public static final String SYNC_MONKEY_ACTION_SEND_FILE_NO_UI = "com.chesapeaketechnology.sycnmonkey.action.SEND_FILE_NO_UI";
 
-    private PhotoMonkeyConstants()
-    {
-    }
+    /**
+     * A custom broadcast action to trigger the Sync Monkey App to kick off a sync of the Photo Monkey directory.
+     */
+    public static final String SYNC_MONKEY_ACTION_SYNC_NOW = "com.chesapeaketechnology.sycnmonkey.action.SYNC_NOW";
+
+    public static final int MULTI_FILE_IO_TIMEOUT_SECONDS = 30;
 
     public static final String SYNC_MONKEY_PACKAGE = "com.chesapeaketechnology.syncmonkey";
     public static final String SYNC_MONKEY_SHARING_ACTIVITY_CLASS = "com.chesapeaketechnology.syncmonkey.SharingActivity";
+    public static final String SYNC_MONKEY_BROADCAST_RECEIVER_CLASS = "com.chesapeaketechnology.syncmonkey.SyncNowBroadcastReceiver";
 }

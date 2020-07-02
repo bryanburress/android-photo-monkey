@@ -24,8 +24,7 @@ import com.chesapeaketechnology.photomonkey.model.AMetadataDelegate;
 import com.chesapeaketechnology.photomonkey.model.GalleryManager;
 import com.chesapeaketechnology.photomonkey.model.Image;
 import com.chesapeaketechnology.photomonkey.model.Metadata;
-
-import java.util.function.Consumer;
+import com.chesapeaketechnology.photomonkey.model.PublicationDelegate;
 
 /**
  * Provides the necessary form elements for capturing supplementary data about an image
@@ -92,6 +91,9 @@ public class SupplementaryInputFragment extends Fragment
                     Image image = model.getImage().updateMetadata(metadata);
                     model.setImage(image);
                 }
+
+                PublicationDelegate.kickOffSyncMonkeySync();
+
                 Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp();
             } catch (AMetadataDelegate.SaveFailure mse)
             {
@@ -108,17 +110,11 @@ public class SupplementaryInputFragment extends Fragment
                 if (mediaUri != null)
                 {
                     galleryManager.discard(view.getContext(), mediaUri,
-                            (Consumer<Uri>) uri -> {
-                                Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp();
-                            },
-                            (Consumer<Uri>) uri -> {
-                                Log.i(TAG, "User cancelled media delete operation.");
-                            },
-                            (Consumer<Exception>) discardException -> {
+                            uri -> Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp(),
+                            uri -> Log.i(TAG, "User cancelled media delete operation."),
+                            discardException -> {
                                 Log.e(TAG, String.format("Unable to delete photo. %s", discardException.getMessage()), discardException);
-                                view.post(() -> {
-                                    Toast.makeText(requireContext(), String.format("Unable to delete photo. %s", discardException.getMessage()), Toast.LENGTH_LONG).show();
-                                });
+                                view.post(() -> Toast.makeText(requireContext(), String.format("Unable to delete photo. %s", discardException.getMessage()), Toast.LENGTH_LONG).show());
                             }
                     );
                 }
@@ -127,6 +123,8 @@ public class SupplementaryInputFragment extends Fragment
 
         // ***** Close Without Description *****
         view.findViewById(R.id.closeButton).setOnClickListener(v -> {
+            PublicationDelegate.kickOffSyncMonkeySync();
+
             Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp();
         });
     }

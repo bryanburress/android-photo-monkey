@@ -58,7 +58,7 @@ public class LocationManager implements LifecycleObserver
     {
         locationManager = (android.location.LocationManager) context.getSystemService(LOCATION_SERVICE);
         Criteria criteria = getCriteria(LocationTrackingMode.LOW_POWER);
-        register(criteria, LOCATION_REFRESH_TIME, LOCATION_REFRESH_DISTANCE);
+        register(criteria, LOCATION_REFRESH_TIME_MS, LOCATION_REFRESH_DISTANCE_METERS);
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
@@ -248,8 +248,8 @@ public class LocationManager implements LifecycleObserver
         Criteria criteria = getCriteria(mode);
         Log.i(TAG, String.format("Switching to location tracking mode %s.", mode.name()));
         register(criteria,
-                LOCATION_REFRESH_TIME * (long) getStepDownMultiplier(mode),
-                LOCATION_REFRESH_DISTANCE * (float) getStepDownMultiplier(mode));
+                LOCATION_REFRESH_TIME_MS * (long) getStepDownMultiplier(mode),
+                LOCATION_REFRESH_DISTANCE_METERS * (float) getStepDownMultiplier(mode));
     }
 
     public enum LocationTrackingMode

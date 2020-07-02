@@ -652,9 +652,8 @@ public class CameraFragment extends Fragment
                                 } catch (PublicationDelegate.PublicationFailure publicationFailure)
                                 {
                                     Log.e(TAG, "Unable to publish image.", publicationFailure);
-                                    viewFinder.post(() -> {
-                                        Toast.makeText(requireContext(), String.format("Unable to publish image. %s", publicationFailure.getMessage()), Toast.LENGTH_LONG).show();
-                                    });
+                                    viewFinder.post(() ->
+                                            Toast.makeText(requireContext(), String.format("Unable to publish image. %s", publicationFailure.getMessage()), Toast.LENGTH_LONG).show());
                                 }
                                 // Automatically navigate to edit the supplementary data.
                                 Navigation.findNavController(requireActivity(), R.id.fragment_container)
@@ -664,21 +663,18 @@ public class CameraFragment extends Fragment
                                 // OnCaptureSuccess doc says "The image is of format ImageFormat.JPEG". So, this should never happen.
                                 // https://developer.android.com/reference/androidx/camera/core/ImageCapture.OnImageCapturedListener#onCaptureSuccess(androidx.camera.core.ImageProxy,%20int)
                                 Log.wtf(TAG, "Format not supported.", unlikely);
-                                viewFinder.post(() -> {
-                                    Toast.makeText(requireContext(), String.format("Camera capture format not supported. %s", unlikely.getMessage()), Toast.LENGTH_LONG).show();
-                                });
+                                viewFinder.post(() ->
+                                        Toast.makeText(requireContext(), String.format("Camera capture format not supported. %s", unlikely.getMessage()), Toast.LENGTH_LONG).show());
                             } catch (ImageFileWriter.WriteException writeException)
                             {
                                 Log.e(TAG, "Unable to save image.", writeException);
-                                viewFinder.post(() -> {
-                                    Toast.makeText(requireContext(), String.format("Unable to save image. %s", writeException.getMessage()), Toast.LENGTH_LONG).show();
-                                });
+                                viewFinder.post(() ->
+                                        Toast.makeText(requireContext(), String.format("Unable to save image. %s", writeException.getMessage()), Toast.LENGTH_LONG).show());
                             } catch (AMetadataDelegate.ReadFailure readFailure)
                             {
                                 Log.w(TAG, "Unable to read image metadata.", readFailure);
-                                viewFinder.post(() -> {
-                                    Toast.makeText(requireContext(), String.format("Unable to read image metadata. %s", readFailure.getMessage()), Toast.LENGTH_SHORT).show();
-                                });
+                                viewFinder.post(() ->
+                                        Toast.makeText(requireContext(), String.format("Unable to read image metadata. %s", readFailure.getMessage()), Toast.LENGTH_SHORT).show());
                             } finally
                             {
                                 imageProxy.close();
@@ -689,9 +685,8 @@ public class CameraFragment extends Fragment
                         public void onError(@NonNull ImageCaptureException exception)
                         {
                             Log.e(TAG, "onError: Unable to capture image.", exception);
-                            viewFinder.post(() -> {
-                                Toast.makeText(requireContext(), String.format("Unable to capture image. %s", exception.getMessage()), Toast.LENGTH_SHORT).show();
-                            });
+                            viewFinder.post(() ->
+                                    Toast.makeText(requireContext(), String.format("Unable to capture image. %s", exception.getMessage()), Toast.LENGTH_SHORT).show());
                         }
                     }
             );

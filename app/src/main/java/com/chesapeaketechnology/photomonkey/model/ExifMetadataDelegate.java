@@ -41,7 +41,7 @@ public class ExifMetadataDelegate extends AMetadataDelegate
             };
 
             Future<Void> result = executorService.submit(backgroundTask);
-            result.get(SINGLE_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
+            result.get(SINGLE_FILE_IO_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (ExecutionException | InterruptedException | TimeoutException e)
         {
             throw new SaveFailure("Error saving EXIF data.", e.getCause());
@@ -59,7 +59,7 @@ public class ExifMetadataDelegate extends AMetadataDelegate
             };
 
             Future<Metadata> result = executorService.submit(backgroundTask);
-            return result.get(SINGLE_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
+            return result.get(SINGLE_FILE_IO_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (ExecutionException | InterruptedException | TimeoutException e)
         {
             throw new ReadFailure("Error accessing EXIF data.", e.getCause());
