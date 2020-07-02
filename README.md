@@ -52,5 +52,5 @@ Install Android Studio to work on this code.
 
 
 ## Contact
-* Christian Rowlands <crowlands@ctic-inc.com>  
-* Les Stroud <lstroud@ctic-inc.com>  
+* **Christian Rowlands** - [Craxiom](https://github.com/christianrowlands)  
+* **Les Stroud** - [lstroud](https://github.com/lstroud)  
