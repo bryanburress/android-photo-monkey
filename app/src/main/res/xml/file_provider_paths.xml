@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <external-files-path name="photo_monkey_images" path="Pictures" />
+    <external-files-path
+        name="photo_monkey_images"
+        path="Pictures" />
+    <external-media-path
+        name="name"
+        path="PhotoMonkey" />
+    <cache-path
+        name="tmp_path"
+        path="." />
+    <external-cache-path
+        name="ext_tmp_path"
+        path="." />
 </paths>

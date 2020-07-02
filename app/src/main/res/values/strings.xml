@@ -1,4 +1,24 @@
 <resources>
     <string name="app_name">Photo Monkey</string>
-    <string name="image_view_content_description">The picture to save</string>
+    <string name="description_dialog_field_hint">Add a description for the photo</string>
+    <string name="capture_button_alt">Capture</string>
+    <string name="switch_camera_button_alt">Switch camera</string>
+    <string name="gallery_button_alt">Gallery</string>
+    <string name="back_button_alt">Back</string>
+    <string name="close_button_alt">Close</string>
+    <string name="edit_button_alt">Edit</string>
+    <string name="upload_button_alt">Edit</string>
+    <string name="share_button_alt">Share</string>
+    <string name="share_hint">Share using</string>
+    <string name="delete_button_alt">Delete</string>
+    <string name="delete_dialog">Delete current photo?</string>
+    <string name="delete_title">Confirm</string>
+    <string name="picture_taken">Picture Taken</string>
+    <string name="save_button">Save</string>
+    <string name="discard_button">Discard Photo</string>
+    <string name="flash_button">flash</string>
+    <string name="focus_button">AutoFocus</string>
+    <string name="autofocus_off">MF</string>
+    <string name="autofocus_on">AF</string>
+    <string name="no_comment">No Comment</string>
 </resources>

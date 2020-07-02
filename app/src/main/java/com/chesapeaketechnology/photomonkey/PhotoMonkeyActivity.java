@@ -1,149 +1,110 @@
 package com.chesapeaketechnology.photomonkey;
 
+import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
 import android.util.Log;
-import android.widget.ImageView;
+import android.view.KeyEvent;
+import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import com.chesapeaketechnology.photomonkey.loc.ILocationManagerProvider;
+import com.chesapeaketechnology.photomonkey.loc.LocationManager;
 
 import java.io.File;
-import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Comparator;
+import java.util.stream.Stream;
+
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
 
 /**
- * The main activity for the Photo Monkey app.  This activity first launches the Android device's default camera app,
- * and once the user takes a picture they are shown the picture to add any details.
+ * The main activity for the Photo Monkey app. This activity acts as a holder for a series of
+ * fragments that facilitate taking pictures, editing metadata, and managing assets.
  *
- * @since 0.1.0
+ * @since 0.2.0
  */
-public class PhotoMonkeyActivity extends AppCompatActivity
+public class PhotoMonkeyActivity extends AppCompatActivity implements ILocationManagerProvider
 {
-    private static final String LOG_TAG = PhotoMonkeyActivity.class.getSimpleName();
-
-    private static final int REQUEST_IMAGE_CAPTURE = 2;
-
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
-
-    private ImageView imageView;
-    private String currentPhotoPath;
-    private Uri photoUri;
+    private static final String TAG = PhotoMonkeyActivity.class.getSimpleName();
+    private FrameLayout container;
+    private LocationManager locationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
-
-        imageView = findViewById(R.id.imageView);
-
-        dispatchTakePictureIntent();
+        container = findViewById(R.id.fragment_container);
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    protected void onResume()
     {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK)
+        super.onResume();
+        container.postDelayed(() -> container.setSystemUiVisibility(FLAGS_FULLSCREEN), IMMERSIVE_FLAG_TIMEOUT);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event)
+    {
+        // Capture volume down hardware button and ensure it is forwarded to fragments.
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
         {
-            if (photoUri == null)
-            {
-                Log.wtf(LOG_TAG, "Could not add the photo to the image view because the photoUri is null");
-                return;
-            }
-
-            imageView.setImageURI(photoUri);
-
-            // TODO 1. Update the UI to add options for adding a description to the photo.
-            // TODO 2. Record the user description in the exif data of the photo
-            // TODO 3. Send the image file over to Sync Monkey so it can be uploaded to Azure, or maybe update Sync
-            //  Monkey so we can send it a command to sync now if we go the route of adding in the photo directory to
-            //  the list of directories to sync.
+            Intent intent = new Intent(KEY_EVENT_ACTION);
+            intent = intent.putExtra(KEY_EVENT_EXTRA, KeyEvent.KEYCODE_VOLUME_DOWN);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+            return true;
         }
+        return super.onKeyDown(keyCode, event);
+    }
 
-        super.onActivityResult(requestCode, resultCode, data);
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        clearExternalCache(getApplicationContext());
     }
 
     /**
-     * Create a picture intent and send it to the default camera app.
-     * <p>
-     * Once the user takes the picture we will show it to the user so they can add a description to it.
-     */
-    private void dispatchTakePictureIntent()
-    {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null)
-        {
-            // Create the File where the photo should go
-            File photoFile = null;
-            try
-            {
-                photoFile = createImageFile();
-            } catch (IOException e)
-            {
-                // Error occurred while creating the File
-                Log.e(LOG_TAG, "Could not create the image file for the Photo Monkey app", e);
-            }
-
-            // Continue only if the File was successfully created
-            if (photoFile != null)
-            {
-                photoUri = FileProvider.getUriForFile(this, PhotoMonkeyConstants.AUTHORITY, photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-            }
-        } else
-        {
-            // TODO Display an error (Snackbar) to the user that the phone does not have a supported camera app
-        }
-    }
-
-    /**
-     * Create a file with a unique file name where the photo can be stored.
+     * Remove any lingering files in the external cache directory. This would include any
+     * temp files created as a part of sharing intents.
      *
-     * @return A File object where the photo can be stored.
-     * @throws IOException If something goes wrong wile trying to create the file.
+     * @param context The application {@link Context}
      */
-    private File createImageFile() throws IOException
+    private void clearExternalCache(Context context)
     {
-        // Create an image file name
-        final String timeStamp = DATE_TIME_FORMATTER.format(ZonedDateTime.now());
-        final String imageFileName = PhotoMonkeyConstants.PHOTO_MONKEY_PHOTO_NAME_PREFIX + timeStamp;
-        final File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES); // TODO We might want to update this to the regular public photo directory
-        final File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",   /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        currentPhotoPath = image.getAbsolutePath();
-        return image;
+        try
+        {
+            File cacheDir = context.getExternalCacheDir();
+            if (cacheDir != null && cacheDir.isDirectory())
+            {
+                Path rootPath = Paths.get(cacheDir.getAbsolutePath());
+                try (Stream<Path> walk = Files.walk(rootPath))
+                {
+                    walk.sorted(Comparator.reverseOrder())
+                            .map(Path::toFile)
+                            .peek(f -> Log.i(TAG, "Removing external cache file: " + f.getAbsolutePath()))
+                            .forEach(File::delete);
+                }
+            }
+        } catch (Exception e)
+        {
+            Log.w(TAG, "Unable to complete clearing external cache", e);
+        }
     }
 
-    /**
-     * We want the picture to show up in the Android Gallery so that other apps can display this photo.
-     */
-    private void addPhotoToGallery()
+    @Override
+    public LocationManager getLocationManager()
     {
-        if (currentPhotoPath == null)
+        if (locationManager == null)
         {
-            Log.wtf(LOG_TAG, "Could not send the photo to the Android Gallery because the currentPhotoPath is null");
-            return;
+            locationManager = new LocationManager(this, getLifecycle());
         }
-
-        // FIXME I don't think this actually works as is.  If we switch to using the public photo directory we won't need to share it to the gallery at all
-
-        final Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        final File photoFile = new File(currentPhotoPath);
-        final Uri contentUri = Uri.fromFile(photoFile);
-        mediaScanIntent.setData(contentUri);
-        sendBroadcast(mediaScanIntent);
+        return locationManager;
     }
 }

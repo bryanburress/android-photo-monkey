@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="CTIDayNightTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primaryColor</item>
+        <item name="colorPrimaryDark">@color/primaryDarkColor</item>
+        <item name="colorAccent">@color/primaryColor</item>
+        <item name="editTextStyle">@style/EditTextLight</item>
+        <item name="android:immersive">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+    </style>
+
+    <style name="DangerButton" parent="@style/Widget.AppCompat.Button.Colored">
+        <item name="colorAccent">@color/dangerColor</item>
+        <item name="android:colorAccent">@color/dangerColor</item>
+    </style>
+
+    <style name="OutlineDangerButton" parent="@style/Widget.AppCompat.Button.Borderless">
+        <item name="colorAccent">@color/dangerColor</item>
+        <item name="android:colorAccent">@android:color/transparent</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textColor">@color/ctiBlue</item>
+
+    </style>
+
+    <style name="EditTextLight" parent="@android:style/Widget.EditText">
+        <item name="android:textColor">@drawable/default_text_color</item>
+        <item name="android:textColorHighlight">@color/ctiBlue</item>
+        <item name="android:editTextColor">@drawable/default_text_color</item>
+        <item name="android:textColorHint">@android:color/secondary_text_dark</item>
+    </style>
+
+    <style name="AlertDialogTheme" parent="@android:style/Theme.Material.Dialog.Alert">
+        <item name="android:buttonBarNegativeButtonStyle">@style/NegativeButtonStyle</item>
+        <item name="android:buttonBarPositiveButtonStyle">@style/PositiveButtonStyle</item>
+    </style>
+
+    <style name="NegativeButtonStyle" parent="@android:style/Widget.Material.Button.Borderless">
+        <item name="android:textColor">@color/whiteSmoke</item>
+    </style>
+
+    <style name="PositiveButtonStyle" parent="@android:style/Widget.Material.Button.Borderless">
+        <item name="android:textColor">@color/dangerColor</item>
+    </style>
+
+    <style name="Widget.Button.FocusToggle" parent="android:Widget">
+        <item name="android:background">@drawable/ic_focus_bg</item>
+        <item name="android:disabledAlpha">?android:attr/disabledAlpha</item>
+    </style>
+
+    <style name="focusButton" parent="android:Theme.Black">
+        <item name="android:buttonStyleToggle">@style/Widget.Button.FocusToggle</item>
+        <item name="android:textOn" />
+        <item name="android:textOff" />
+    </style>
+
+</resources>

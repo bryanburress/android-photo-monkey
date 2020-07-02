@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="ctiBlue">#0082C0</color>
     <color name="sanguineRed">#F97242</color>
 
     <color name="carrotOrange">#FA961F</color>
