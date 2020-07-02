@@ -98,7 +98,7 @@ public class ImageMediaStoreWriter extends AImageWriter
                 };
 
                 Future<Uri> result = executorService.submit(writeTask);
-                return result.get(SINGLE_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
+                return result.get(SINGLE_FILE_IO_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             } catch (ExecutionException | InterruptedException | TimeoutException e)
             {
                 throw new WriteException("Unable to save image", e.getCause());

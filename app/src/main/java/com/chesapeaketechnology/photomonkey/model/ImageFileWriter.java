@@ -24,7 +24,7 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
  * Write an {@link ImageProxy} to the external media directory.  This is a file system
  * write operation that bypasses media APIs.
  *
- * @since 0.2.0
+ * @since 0.1.0
  */
 public class ImageFileWriter extends AImageWriter
 {
@@ -43,7 +43,7 @@ public class ImageFileWriter extends AImageWriter
      * Currently, only supports {@link ImageFormat#JPEG}
      *
      * @param image the {@link ImageProxy} to write
-     * @return
+     * @return The URI of the file that was written to.
      */
     @Override
     public Uri write(ImageProxy image) throws FormatNotSupportedException, WriteException
@@ -73,7 +73,7 @@ public class ImageFileWriter extends AImageWriter
                 };
 
                 Future<Void> result = executorService.submit(writeTask);
-                result.get(SINGLE_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
+                result.get(SINGLE_FILE_IO_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 return Uri.fromFile(toFile);
             } catch (ExecutionException | InterruptedException | TimeoutException e)
             {

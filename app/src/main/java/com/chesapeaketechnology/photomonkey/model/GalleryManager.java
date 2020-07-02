@@ -81,7 +81,7 @@ public class GalleryManager
         {
             Callable<List<Uri>> backgroundTask = this::getMediaUris;
             Future<List<Uri>> result = executorService.submit(backgroundTask);
-            List<Uri> mediaList = result.get(MULTI_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
+            List<Uri> mediaList = result.get(MULTI_FILE_IO_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             if (mediaList != null && !mediaList.isEmpty())
             {
                 return mediaList.get(0);
@@ -104,11 +104,9 @@ public class GalleryManager
     {
         try
         {
-            Callable<List<Uri>> backgroundTask = () -> {
-                return getMediaUris();
-            };
+            Callable<List<Uri>> backgroundTask = this::getMediaUris;
             Future<List<Uri>> result = executorService.submit(backgroundTask);
-            return result.get(MULTI_FILE_IO_TIMEOUT, TimeUnit.SECONDS);
+            return result.get(MULTI_FILE_IO_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (ExecutionException | InterruptedException | TimeoutException e)
         {
             throw new GalleryAccessFailure("Unable to get latest image from gallery", e);
@@ -136,7 +134,7 @@ public class GalleryManager
                     )
             );
             // Reverse the order of the list to present the last photos first
-            return files.stream().sorted(Comparator.reverseOrder()).map(f -> Uri.fromFile(f)).collect(Collectors.toList());
+            return files.stream().sorted(Comparator.reverseOrder()).map(Uri::fromFile).collect(Collectors.toList());
         } else
         {
             List<Uri> uris = new ArrayList<>();
