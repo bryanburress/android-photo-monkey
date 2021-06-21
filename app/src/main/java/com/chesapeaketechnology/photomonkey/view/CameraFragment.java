@@ -15,6 +15,8 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -68,10 +70,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.FOCUS_RECT_SIZE;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.FOCUS_STROKE_WIDTH;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.KEY_EVENT_ACTION;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.RATIO_16_9_VALUE;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.RATIO_4_3_VALUE;
 import static java.lang.Integer.max;
 import static java.lang.Integer.min;
-import static java.lang.Math.*;
+import static java.lang.Math.abs;
 
 /**
  * User interface fragment responsible for providing a view finder and capturing pictures. This is
@@ -287,8 +293,7 @@ public class CameraFragment extends Fragment
             // Update the auto focus button
             focusButton.setChecked(true);
 
-            CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(lensFacing).build();
-            MeteringPointFactory meteringPointFactory = viewFinder.createMeteringPointFactory(cameraSelector);
+            MeteringPointFactory meteringPointFactory = viewFinder.getMeteringPointFactory();
 
             // Create an auto focus point at the center of the screen.
             float centerX = (float) viewFinder.getWidth() / 2;
@@ -322,8 +327,7 @@ public class CameraFragment extends Fragment
     {
         camera.getCameraControl().cancelFocusAndMetering();
         focusButton.setChecked(false);
-        CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(lensFacing).build();
-        MeteringPointFactory meteringPointFactory = viewFinder.createMeteringPointFactory(cameraSelector);
+        MeteringPointFactory meteringPointFactory = viewFinder.getMeteringPointFactory();
         MeteringPoint meteringPoint = meteringPointFactory.createPoint(center.x, center.y);
         int meteringMode = FocusMeteringAction.FLAG_AF | FocusMeteringAction.FLAG_AE | FocusMeteringAction.FLAG_AWB;
         FocusMeteringAction tapToFocusMeteringAction =
@@ -429,23 +433,19 @@ public class CameraFragment extends Fragment
                     // Attach the viewfinder's surface provider to preview use case
                     if (preview != null)
                     {
-                        preview.setSurfaceProvider(viewFinder.createSurfaceProvider());
+                        preview.setSurfaceProvider(viewFinder.getSurfaceProvider());
                     }
                     // Start auto focus at center of screen
                     startAutoFocus();
                 } catch (Exception exc)
                 {
                     Log.e(TAG, "Use case binding failed", exc);
-                    viewFinder.post(() -> {
-                        Toast.makeText(requireContext(), String.format("Unable to initialize camera. %s", exc.getMessage()), Toast.LENGTH_SHORT).show();
-                    });
+                    viewFinder.post(() -> Toast.makeText(requireContext(), String.format("Unable to initialize camera. %s", exc.getMessage()), Toast.LENGTH_SHORT).show());
                 }
             } catch (ExecutionException | InterruptedException e)
             {
                 Log.e(TAG, "bindCameraUseCases: Unable to get camera provider", e);
-                viewFinder.post(() -> {
-                    Toast.makeText(requireContext(), String.format("Unable to get camera provider. %s", e.getMessage()), Toast.LENGTH_SHORT).show();
-                });
+                viewFinder.post(() -> Toast.makeText(requireContext(), String.format("Unable to get camera provider. %s", e.getMessage()), Toast.LENGTH_SHORT).show());
             }
         }, ContextCompat.getMainExecutor(requireContext()));
     }
@@ -526,9 +526,7 @@ public class CameraFragment extends Fragment
         {
             Log.e(TAG, "updateCameraUi: Unable to find existing images.", e);
             Throwable rootCause = Throwables.getRootCause(e);
-            viewFinder.post(() -> {
-                Toast.makeText(requireContext(), String.format("Unable to find existing images. %s", rootCause.getMessage()), Toast.LENGTH_SHORT).show();
-            });
+            viewFinder.post(() -> Toast.makeText(requireContext(), String.format("Unable to find existing images. %s", rootCause.getMessage()), Toast.LENGTH_SHORT).show());
         }
 
         // Update the flashButton to reflect the current state.
@@ -596,9 +594,7 @@ public class CameraFragment extends Fragment
             {
                 Log.e(TAG, "updateCameraUi: Unable to find existing images.", galleryAccessFailure);
                 Throwable rootCause = Throwables.getRootCause(galleryAccessFailure);
-                viewFinder.post(() -> {
-                    Toast.makeText(requireContext(), String.format("Unable to find existing images. %s", rootCause.getMessage()), Toast.LENGTH_SHORT).show();
-                });
+                viewFinder.post(() -> Toast.makeText(requireContext(), String.format("Unable to find existing images. %s", rootCause.getMessage()), Toast.LENGTH_SHORT).show());
             }
         });
     }
@@ -656,8 +652,9 @@ public class CameraFragment extends Fragment
                                             Toast.makeText(requireContext(), String.format("Unable to publish image. %s", publicationFailure.getMessage()), Toast.LENGTH_LONG).show());
                                 }
                                 // Automatically navigate to edit the supplementary data.
-                                Navigation.findNavController(requireActivity(), R.id.fragment_container)
-                                        .navigate(CameraFragmentDirections.actionCameraFragmentToSupplementaryInputFragment());
+                                new Handler(Looper.getMainLooper()).post(() ->
+                                        Navigation.findNavController(requireActivity(), R.id.fragment_container)
+                                                .navigate(CameraFragmentDirections.actionCameraFragmentToSupplementaryInputFragment()));
                             } catch (ImageFileWriter.FormatNotSupportedException unlikely)
                             {
                                 // OnCaptureSuccess doc says "The image is of format ImageFormat.JPEG". So, this should never happen.

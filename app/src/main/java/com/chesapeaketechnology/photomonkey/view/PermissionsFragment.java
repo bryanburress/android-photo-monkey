@@ -2,11 +2,9 @@ package com.chesapeaketechnology.photomonkey.view;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
@@ -15,7 +13,8 @@ import com.chesapeaketechnology.photomonkey.R;
 
 import java.util.Arrays;
 
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.PERMISSIONS_REQUEST_CODE;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.PERMISSIONS_REQUIRED;
 
 /**
  * Verifies that the necessary permissions are present and navigates back to the {@link CameraFragment}.
@@ -37,15 +36,13 @@ public class PermissionsFragment extends Fragment
      */
     public static boolean hasPermissions(Context context)
     {
-        return Arrays.stream(PERMISSIONS_REQUIRED).allMatch(p -> {
-            return ContextCompat.checkSelfPermission(context, p) == PackageManager.PERMISSION_GRANTED;
-        });
+        return Arrays.stream(PERMISSIONS_REQUIRED).allMatch(p -> ContextCompat.checkSelfPermission(context, p) == PackageManager.PERMISSION_GRANTED);
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState)
+    public void onResume()
     {
-        super.onCreate(savedInstanceState);
+        super.onResume();
 
         if (hasPermissions(requireContext()))
         {
