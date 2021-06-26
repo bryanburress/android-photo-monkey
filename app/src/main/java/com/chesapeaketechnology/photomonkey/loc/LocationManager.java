@@ -20,8 +20,10 @@ import androidx.lifecycle.OnLifecycleEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.content.Context.*;
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
+import static android.content.Context.LOCATION_SERVICE;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.LOCATION_REFRESH_DISTANCE_METERS;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.LOCATION_REFRESH_TIME_MS;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.PERMISSIONS_REQUEST_CODE;
 
 /**
  * Provides location updates for permitted listeners.
@@ -213,7 +215,6 @@ public class LocationManager implements LifecycleObserver
                 criteria.setSpeedRequired(true);
                 break;
             case LOW_POWER:
-                criteria.setAccuracy(Criteria.POWER_LOW);
                 criteria.setAccuracy(Criteria.ACCURACY_COARSE);
                 criteria.setCostAllowed(false);
                 break;
