@@ -4,7 +4,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import androidx.camera.core.ImageProxy;
 
@@ -16,6 +15,8 @@ import java.io.InputStream;
 import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 
+import timber.log.Timber;
+
 /**
  * The Image class manages the attributes associated with an image, exposes the necessary
  * functionality for operating on images, and encapsulates any differences between
@@ -25,7 +26,6 @@ import java.util.Objects;
  */
 public class Image
 {
-    private static final String TAG = Image.class.getSimpleName();
     private final AMetadataDelegate metadataDelegate;
     private final PublicationDelegate publicationDelegate;
     private Uri uri;
@@ -179,7 +179,7 @@ public class Image
             {
                 File outputDir = context.getExternalCacheDir();
                 File tempFile = File.createTempFile("tmp_", ".jpg", outputDir);
-                Log.d(TAG, String.format("writeToTempFile: %s", tempFile.getAbsolutePath()));
+                Timber.d(String.format("writeToTempFile: %s", tempFile.getAbsolutePath()));
                 java.nio.file.Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 // This is not guaranteed to work. Have also created a reaper
                 // in the activity onDestroy to clean up stragglers.

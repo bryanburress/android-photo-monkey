@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<restrictions xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <restriction
+        android:defaultValue="Not Set"
+        android:description="@string/post_url"
+        android:key="azure_post_url"
+        android:restrictionType="string"
+        android:title="@string/post_url" />
+
+</restrictions>

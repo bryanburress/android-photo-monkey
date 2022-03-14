@@ -4,7 +4,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import androidx.exifinterface.media.ExifInterface;
 
@@ -26,6 +25,8 @@ import java.util.concurrent.TimeoutException;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyApplication.*;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
 
+import timber.log.Timber;
+
 /**
  * Provides functionality for  EXIF data access and manipulation for image files
  * in the stored in the directory defined by ({@link MediaStore#VOLUME_EXTERNAL_PRIMARY}
@@ -35,7 +36,6 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
  */
 public class ExifMetadataMediaStoreDelegate extends ExifMetadataDelegate
 {
-    private static final String TAG = ExifMetadataMediaStoreDelegate.class.getSimpleName();
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     @Override
@@ -62,7 +62,7 @@ public class ExifMetadataMediaStoreDelegate extends ExifMetadataDelegate
                 {
                     super.save(metadata, forImage);
                 }
-                Log.d(TAG, String.format("Saved image with supplementary data [%s]", metadata));
+                Timber.d("Saved image with supplementary data [%s]", metadata);
                 return null;
             };
 
@@ -115,7 +115,7 @@ public class ExifMetadataMediaStoreDelegate extends ExifMetadataDelegate
     {
         File outputDir = getContext().getExternalCacheDir();
         File tempFile = File.createTempFile("tmp_", ".jpg", outputDir);
-        Log.d(TAG, String.format("writeToTempFile: %s", tempFile.getAbsolutePath()));
+        Timber.d("writeToTempFile: %s", tempFile.getAbsolutePath());
         Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         return tempFile;
     }

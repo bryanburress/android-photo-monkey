@@ -1,14 +1,21 @@
 package com.chesapeaketechnology.photomonkey;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.preference.PreferenceManager;
 
 import com.chesapeaketechnology.photomonkey.loc.ILocationManagerProvider;
 import com.chesapeaketechnology.photomonkey.loc.LocationManager;
@@ -22,6 +29,8 @@ import java.util.stream.Stream;
 
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
 
+import timber.log.Timber;
+
 /**
  * The main activity for the Photo Monkey app. This activity acts as a holder for a series of
  * fragments that facilitate taking pictures, editing metadata, and managing assets.
@@ -30,7 +39,6 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
  */
 public class PhotoMonkeyActivity extends AppCompatActivity implements ILocationManagerProvider
 {
-    private static final String TAG = PhotoMonkeyActivity.class.getSimpleName();
     private FrameLayout container;
     private LocationManager locationManager;
 
@@ -88,13 +96,13 @@ public class PhotoMonkeyActivity extends AppCompatActivity implements ILocationM
                 {
                     walk.sorted(Comparator.reverseOrder())
                             .map(Path::toFile)
-                            .peek(f -> Log.i(TAG, "Removing external cache file: " + f.getAbsolutePath()))
+                            .peek(f -> Timber.i("Removing external cache file: %s", f.getAbsolutePath()))
                             .forEach(File::delete);
                 }
             }
         } catch (Exception e)
         {
-            Log.w(TAG, "Unable to complete clearing external cache", e);
+            Timber.w(e, "Unable to complete clearing external cache");
         }
     }
 

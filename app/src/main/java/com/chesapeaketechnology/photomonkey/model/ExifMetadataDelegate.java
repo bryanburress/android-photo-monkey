@@ -2,7 +2,6 @@ package com.chesapeaketechnology.photomonkey.model;
 
 import android.content.Context;
 import android.location.Location;
-import android.util.Log;
 
 import androidx.exifinterface.media.ExifInterface;
 
@@ -17,6 +16,8 @@ import java.util.concurrent.TimeoutException;
 
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
 
+import timber.log.Timber;
+
 /**
  * Provides functionality for EXIF data access and manipulation for image files
  * in the External Media Dir ({@link Context#getExternalMediaDirs()})
@@ -25,7 +26,6 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
  */
 public class ExifMetadataDelegate extends AMetadataDelegate
 {
-    private static final String TAG = ExifMetadataDelegate.class.getSimpleName();
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     @Override
@@ -36,7 +36,7 @@ public class ExifMetadataDelegate extends AMetadataDelegate
             Callable<Void> backgroundTask = () -> {
                 ExifInterface exif = new ExifInterface(forImage.getFile().getAbsolutePath());
                 writeData(metadata, exif);
-                Log.d(TAG, String.format("Saved image with supplementary data [%s]", metadata));
+                Timber.d("Saved image with supplementary data [%s]", metadata);
                 return null;
             };
 
