@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "803247459978",
+    "project_id": "photo-monkey-88263",
+    "storage_bucket": "photo-monkey-88263.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:803247459978:android:111987030bf9e2b8c36773",
+        "android_client_info": {
+          "package_name": "com.chesapeaketechnology.photomonkey"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "803247459978-hriq9gkiip0v6rbbc35b2m39vs3v25k5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdf3s-3h4F2Ng2_-o6OXIhfpnq5REw3II"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "803247459978-hriq9gkiip0v6rbbc35b2m39vs3v25k5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
