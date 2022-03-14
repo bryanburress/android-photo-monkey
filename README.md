@@ -16,7 +16,11 @@ To build and install the project follow the steps below:
 Install Android Studio to work on this code.
 
 ## Changelog
- 
+
+ ##### [0.2.0](https://github.com/chesapeaketechnology/android-photo-monkey/releases/tag/v0.2.0) - 2022-03-11
+  * Add settings screen and allow for MDM management of settings
+  * Upload photos to the optional Remote URL specified in the settings
+
 ##### [0.1.0](https://github.com/chesapeaketechnology/android-photo-monkey/releases/tag/v0.1.0) - 2020-07-08
  * Initial Release of the Photo Monkey app to take pictures, add a description, geo-tag, and push to Sync Monkey.
  * Reworked UI to be Fragment based

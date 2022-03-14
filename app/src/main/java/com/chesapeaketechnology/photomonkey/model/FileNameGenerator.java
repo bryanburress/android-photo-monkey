@@ -1,7 +1,6 @@
 package com.chesapeaketechnology.photomonkey.model;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.chesapeaketechnology.photomonkey.PhotoMonkeyApplication;
 import com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants;
@@ -13,6 +12,8 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
+
+import timber.log.Timber;
 
 /**
  * Generates file names and determines the path where images are stored if we are not using
@@ -26,7 +27,6 @@ public class FileNameGenerator
     public static final String FILE_NAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS";
     public static final String VOLUME = "PhotoMonkey";
     public static final String EXTENSION = ".jpg";
-    private static final String TAG = FileNameGenerator.class.getSimpleName();
     private final File outputDirectory;
 
     public FileNameGenerator()
@@ -79,7 +79,7 @@ public class FileNameGenerator
     {
         File outputFolder = getRootDirectory();
         File fileName = new File(outputFolder, PREFIX + new SimpleDateFormat(FILE_NAME_FORMAT, Locale.US).format(System.currentTimeMillis()) + EXTENSION);
-        Log.d(TAG, String.format("Generated path: %s", fileName.getAbsolutePath()));
+        Timber.d("Generated path: %s", fileName.getAbsolutePath());
         return fileName;
     }
 }

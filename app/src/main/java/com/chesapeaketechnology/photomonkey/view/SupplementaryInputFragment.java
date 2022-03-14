@@ -3,7 +3,6 @@ package com.chesapeaketechnology.photomonkey.view;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +25,8 @@ import com.chesapeaketechnology.photomonkey.model.Image;
 import com.chesapeaketechnology.photomonkey.model.Metadata;
 import com.chesapeaketechnology.photomonkey.model.PublicationDelegate;
 
+import timber.log.Timber;
+
 /**
  * Provides the necessary form elements for capturing supplementary data about an image
  * from a user. It populates the resulting data into the shared view model as a
@@ -35,8 +36,6 @@ import com.chesapeaketechnology.photomonkey.model.PublicationDelegate;
  */
 public class SupplementaryInputFragment extends Fragment
 {
-    private static final String TAG = SupplementaryInputFragment.class.getSimpleName();
-
     public SupplementaryInputFragment()
     {
     }
@@ -91,13 +90,12 @@ public class SupplementaryInputFragment extends Fragment
                     Image image = model.getImage().updateMetadata(metadata);
                     model.setImage(image);
                 }
-
                 PublicationDelegate.kickOffSyncMonkeySync();
-
+                PublicationDelegate.uploadFileToRemoteEndpoint(model.getImage().getUri());
                 Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp();
             } catch (AMetadataDelegate.SaveFailure mse)
             {
-                Log.e(TAG, "onViewCreated: Unable to save metadata.", mse);
+                Timber.e(mse, "onViewCreated: Unable to save metadata.");
                 Toast.makeText(requireContext(), String.format("Unable to save metadata. %s", mse.getMessage()), Toast.LENGTH_LONG).show();
             }
         });
@@ -111,9 +109,9 @@ public class SupplementaryInputFragment extends Fragment
                 {
                     galleryManager.discard(view.getContext(), mediaUri,
                             uri -> Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp(),
-                            uri -> Log.i(TAG, "User cancelled media delete operation."),
+                            uri -> Timber.i("User cancelled media delete operation."),
                             discardException -> {
-                                Log.e(TAG, String.format("Unable to delete photo. %s", discardException.getMessage()), discardException);
+                                Timber.e(discardException, "Unable to delete photo. %s", discardException.getMessage());
                                 view.post(() -> Toast.makeText(requireContext(), String.format("Unable to delete photo. %s", discardException.getMessage()), Toast.LENGTH_LONG).show());
                             }
                     );
@@ -124,8 +122,9 @@ public class SupplementaryInputFragment extends Fragment
         // ***** Close Without Description *****
         view.findViewById(R.id.closeButton).setOnClickListener(v -> {
             PublicationDelegate.kickOffSyncMonkeySync();
-
+            PublicationDelegate.uploadFileToRemoteEndpoint(model.getImage().getUri());
             Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp();
         });
     }
+
 }

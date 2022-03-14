@@ -2,7 +2,6 @@ package com.chesapeaketechnology.photomonkey.model;
 
 import android.graphics.ImageFormat;
 import android.net.Uri;
-import android.util.Log;
 
 import androidx.camera.core.ImageProxy;
 
@@ -20,6 +19,8 @@ import java.util.concurrent.TimeoutException;
 
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
 
+import timber.log.Timber;
+
 /**
  * Write an {@link ImageProxy} to the external media directory.  This is a file system
  * write operation that bypasses media APIs.
@@ -28,7 +29,6 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
  */
 public class ImageFileWriter extends AImageWriter
 {
-    private static final String TAG = ImageFileWriter.class.getSimpleName();
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     private final FileNameGenerator fileNameGenerator;
@@ -64,7 +64,7 @@ public class ImageFileWriter extends AImageWriter
                         output.write(data);
                     } catch (IOException e)
                     {
-                        Log.e(TAG, "Error writing image data to file", e);
+                        Timber.e(e, "Error writing image data to file");
                     } finally
                     {
                         image.close();

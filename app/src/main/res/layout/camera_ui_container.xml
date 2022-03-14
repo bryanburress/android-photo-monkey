@@ -63,11 +63,25 @@
         app:layout_constraintBottom_toBottomOf="parent"
         android:contentDescription="@string/gallery_button_alt" />
 
+
+    <ImageButton
+        android:id="@+id/prefsButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="32dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/prefs_button"
+        android:scaleType="center"
+        android:src="@drawable/ic_prefs"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ImageButton
         android:id="@+id/flashButton"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_marginStart="32dp"
+        android:layout_marginStart="64dp"
         android:layout_marginTop="32dp"
         android:background="@android:color/transparent"
         android:contentDescription="@string/flash_button"

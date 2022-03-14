@@ -8,7 +8,6 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
@@ -25,6 +24,8 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.LOCATION
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.LOCATION_REFRESH_TIME_MS;
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.PERMISSIONS_REQUEST_CODE;
 
+import timber.log.Timber;
+
 /**
  * Provides location updates for permitted listeners.
  * Automatically switches to low power mode when the app is in the background
@@ -34,7 +35,6 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.PERMISSI
  */
 public class LocationManager implements LifecycleObserver
 {
-    private static final String TAG = LocationManager.class.getSimpleName();
     private static final int LOW_POWER_STEP_DOWN_MULTIPLIER = 10;
     private final Context context;
     private final Lifecycle lifecycle;
@@ -108,7 +108,7 @@ public class LocationManager implements LifecycleObserver
                 locationManager.removeUpdates(locationListener);
             } catch (Exception ex)
             {
-                Log.w(TAG, "Failed to remove location listener", ex);
+                Timber.w(ex, "Failed to remove location listener");
             }
         }
     }
@@ -165,7 +165,7 @@ public class LocationManager implements LifecycleObserver
             if (ActivityCompat.shouldShowRequestPermissionRationale((Activity) context, Manifest.permission.ACCESS_FINE_LOCATION)
                     || ActivityCompat.shouldShowRequestPermissionRationale((Activity) context, Manifest.permission.ACCESS_COARSE_LOCATION))
             {
-                Log.e(TAG, "Permission denied for location data.");
+                Timber.e("Permission denied for location data.");
                 Toast.makeText(context, "Permission denied for location data.", Toast.LENGTH_LONG).show();
             } else
             {
@@ -247,7 +247,7 @@ public class LocationManager implements LifecycleObserver
     {
         deregister();
         Criteria criteria = getCriteria(mode);
-        Log.i(TAG, String.format("Switching to location tracking mode %s.", mode.name()));
+        Timber.i("Switching to location tracking mode %s.", mode.name());
         register(criteria,
                 LOCATION_REFRESH_TIME_MS * (long) getStepDownMultiplier(mode),
                 LOCATION_REFRESH_DISTANCE_METERS * (float) getStepDownMultiplier(mode));
