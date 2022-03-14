@@ -179,7 +179,7 @@ public class Image
             {
                 File outputDir = context.getExternalCacheDir();
                 File tempFile = File.createTempFile("tmp_", ".jpg", outputDir);
-                Timber.d(String.format("writeToTempFile: %s", tempFile.getAbsolutePath()));
+                Timber.d("writeToTempFile: %s", tempFile.getAbsolutePath());
                 java.nio.file.Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 // This is not guaranteed to work. Have also created a reaper
                 // in the activity onDestroy to clean up stragglers.
