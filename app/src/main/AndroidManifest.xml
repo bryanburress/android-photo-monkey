@@ -22,7 +22,7 @@
         android:theme="@style/CTIDayNightTheme"
         android:requestLegacyExternalStorage="true"
         android:name=".PhotoMonkeyApplication"
-        tools:targetApi="q">
+        tools:targetApi="s">
 
         <activity
             android:name="com.chesapeaketechnology.photomonkey.PhotoMonkeyActivity"
