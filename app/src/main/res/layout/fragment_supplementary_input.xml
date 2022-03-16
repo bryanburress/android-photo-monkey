@@ -25,7 +25,7 @@
         android:contentDescription="@string/close_button_alt"
         android:elevation="5dp"
         android:scaleType="fitCenter"
-        android:tint="#D8FFFFFF"
+        app:tint="#D8FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/ic_delete" />

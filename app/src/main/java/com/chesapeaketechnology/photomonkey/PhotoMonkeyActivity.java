@@ -1,14 +1,19 @@
 package com.chesapeaketechnology.photomonkey;
 
+import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.RestrictionsManager;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.preference.PreferenceManager;
 
 import com.chesapeaketechnology.photomonkey.loc.ILocationManagerProvider;
 import com.chesapeaketechnology.photomonkey.loc.LocationManager;
@@ -22,6 +27,8 @@ import java.util.stream.Stream;
 
 import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
 
+import timber.log.Timber;
+
 /**
  * The main activity for the Photo Monkey app. This activity acts as a holder for a series of
  * fragments that facilitate taking pictures, editing metadata, and managing assets.
@@ -30,9 +37,9 @@ import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
  */
 public class PhotoMonkeyActivity extends AppCompatActivity implements ILocationManagerProvider
 {
-    private static final String TAG = PhotoMonkeyActivity.class.getSimpleName();
     private FrameLayout container;
     private LocationManager locationManager;
+    private BroadcastReceiver managedConfigurationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -40,6 +47,7 @@ public class PhotoMonkeyActivity extends AppCompatActivity implements ILocationM
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         container = findViewById(R.id.fragment_container);
+        managedConfigurationListener = registerManagedConfigurationListener(getApplicationContext());
     }
 
     @Override
@@ -47,6 +55,10 @@ public class PhotoMonkeyActivity extends AppCompatActivity implements ILocationM
     {
         super.onResume();
         container.postDelayed(() -> container.setSystemUiVisibility(FLAGS_FULLSCREEN), IMMERSIVE_FLAG_TIMEOUT);
+
+        // Per the Android developer tutorials it is recommended to read the managed configuration in the onResume method
+        readPhotoMonkeyManagedConfiguration(this);
+        managedConfigurationListener = registerManagedConfigurationListener(getApplicationContext());
     }
 
     @Override
@@ -68,6 +80,7 @@ public class PhotoMonkeyActivity extends AppCompatActivity implements ILocationM
     {
         super.onDestroy();
         clearExternalCache(getApplicationContext());
+        unregisterManagedConfigurationListener();
     }
 
     /**
@@ -88,13 +101,13 @@ public class PhotoMonkeyActivity extends AppCompatActivity implements ILocationM
                 {
                     walk.sorted(Comparator.reverseOrder())
                             .map(Path::toFile)
-                            .peek(f -> Log.i(TAG, "Removing external cache file: " + f.getAbsolutePath()))
+                            .peek(f -> Timber.i("Removing external cache file: %s", f.getAbsolutePath()))
                             .forEach(File::delete);
                 }
             }
         } catch (Exception e)
         {
-            Log.w(TAG, "Unable to complete clearing external cache", e);
+            Timber.w(e, "Unable to complete clearing external cache");
         }
     }
 
@@ -106,5 +119,83 @@ public class PhotoMonkeyActivity extends AppCompatActivity implements ILocationM
             locationManager = new LocationManager(this, getLifecycle());
         }
         return locationManager;
+    }
+
+    /**
+     * Reads the Sync Monkey Managed Configuration and loads the values into the App's Shared Preferences.
+     */
+    @SuppressLint("ApplySharedPref")
+    public void readPhotoMonkeyManagedConfiguration(Context context)
+    {
+        try
+        {
+            // Next, read any MDM set values.  Doing this last so that we can overwrite the values from the properties file
+            Timber.i("Reading in any MDM configured properties");
+            final RestrictionsManager restrictionsManager = (RestrictionsManager) context.getSystemService(Context.RESTRICTIONS_SERVICE);
+            if (restrictionsManager != null)
+            {
+                final Bundle mdmProperties = restrictionsManager.getApplicationRestrictions();
+
+                final boolean mdmOverride = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(PROPERTY_MDM_OVERRIDE_KEY, false);
+
+                Timber.d("When reading the Photo Monkey managed configuration the mdmOverride=%s", mdmOverride);
+
+                SharedPreferences.Editor edit = PreferenceManager.getDefaultSharedPreferences(context).edit();
+                mdmProperties.keySet().forEach(key -> {
+                    final Object property = mdmProperties.get(key);
+
+                    if (property instanceof String)
+                    {
+                        edit.putString(key, (String) property);
+                    }
+                });
+                edit.commit();
+            }
+        } catch (Exception e)
+        {
+            Timber.e(e, "Can't read the Sync Monkey managed configuration");
+        }
+    }
+
+    /**
+     * Register a listener so that if the Managed Config changes we will be notified of the new config.
+     */
+    public BroadcastReceiver registerManagedConfigurationListener(Context context)
+    {
+        Timber.e("Registering the managed conf listener");
+        final IntentFilter restrictionsFilter = new IntentFilter(Intent.ACTION_APPLICATION_RESTRICTIONS_CHANGED);
+
+        final BroadcastReceiver restrictionsReceiver = new BroadcastReceiver()
+        {
+            @Override
+            public void onReceive(Context context, Intent intent)
+            {
+                readPhotoMonkeyManagedConfiguration(context);
+            }
+        };
+
+        context.registerReceiver(restrictionsReceiver, restrictionsFilter);
+
+        return restrictionsReceiver;
+    }
+
+    /**
+     * Remove the managed configuration listener.
+     *
+     * @since 0.2.1
+     */
+    private void unregisterManagedConfigurationListener()
+    {
+        if (managedConfigurationListener != null)
+        {
+            try
+            {
+                getApplicationContext().unregisterReceiver(managedConfigurationListener);
+            } catch (Exception e)
+            {
+                Timber.e(e, "Unable to unregister the Managed Configuration Listener when pausing the app");
+            }
+            managedConfigurationListener = null;
+        }
     }
 }

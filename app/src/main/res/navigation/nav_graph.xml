@@ -18,7 +18,7 @@
     <fragment
         android:id="@+id/cameraFragment"
         android:name="com.chesapeaketechnology.photomonkey.view.CameraFragment"
-        android:label="CameraFragment" >
+        android:label="CameraFragment">
         <action
             android:id="@+id/action_cameraFragment_to_permissionsFragment"
             app:destination="@id/permissionsFragment"
@@ -40,19 +40,19 @@
         android:id="@+id/galleryFragment"
         android:name="com.chesapeaketechnology.photomonkey.view.GalleryFragment"
         android:label="gallery_view"
-        tools:layout="@layout/fragment_gallery" >
+        tools:layout="@layout/fragment_gallery">
         <action
             android:id="@+id/action_galleryFragment_to_supplementaryInputFragment"
             app:destination="@id/supplementaryInputFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
     <fragment
         android:id="@+id/supplementaryInputFragment"
         android:name="com.chesapeaketechnology.photomonkey.view.SupplementaryInputFragment"
-        android:label="SupplementaryInputFragment" >
+        android:label="SupplementaryInputFragment">
         <action
             android:id="@+id/action_supplementaryInputFragment_to_cameraFragment"
             app:destination="@id/cameraFragment"
