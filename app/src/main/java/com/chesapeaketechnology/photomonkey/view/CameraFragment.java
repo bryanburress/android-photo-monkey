@@ -15,8 +15,9 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -46,6 +47,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.navigation.Navigation;
@@ -60,6 +62,7 @@ import com.chesapeaketechnology.photomonkey.model.GalleryManager;
 import com.chesapeaketechnology.photomonkey.model.Image;
 import com.chesapeaketechnology.photomonkey.model.ImageFileWriter;
 import com.chesapeaketechnology.photomonkey.model.PublicationDelegate;
+
 import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -68,10 +71,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.*;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.FOCUS_RECT_SIZE;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.FOCUS_STROKE_WIDTH;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.KEY_EVENT_ACTION;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.RATIO_16_9_VALUE;
+import static com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants.RATIO_4_3_VALUE;
 import static java.lang.Integer.max;
 import static java.lang.Integer.min;
-import static java.lang.Math.*;
+import static java.lang.Math.abs;
+
+import timber.log.Timber;
 
 /**
  * User interface fragment responsible for providing a view finder and capturing pictures. This is
@@ -82,8 +91,6 @@ import static java.lang.Math.*;
  */
 public class CameraFragment extends Fragment
 {
-    private static final String TAG = CameraFragment.class.getSimpleName();
-
     private final CameraFragment this_fragment = this;
     private LocalBroadcastManager broadcastManager;
     private PreviewView viewFinder;
@@ -112,8 +119,7 @@ public class CameraFragment extends Fragment
         {
             if (displayId == this_fragment.displayId)
             {
-                Log.d(TAG, String.format("Rotation changed: %d",
-                        requireView().getDisplay().getRotation()));
+                Timber.d("Rotation changed: %d", requireView().getDisplay().getRotation());
                 if (imageCapture != null)
                 {
                     imageCapture.setTargetRotation(requireView().getDisplay().getRotation());
@@ -287,8 +293,7 @@ public class CameraFragment extends Fragment
             // Update the auto focus button
             focusButton.setChecked(true);
 
-            CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(lensFacing).build();
-            MeteringPointFactory meteringPointFactory = viewFinder.createMeteringPointFactory(cameraSelector);
+            MeteringPointFactory meteringPointFactory = viewFinder.getMeteringPointFactory();
 
             // Create an auto focus point at the center of the screen.
             float centerX = (float) viewFinder.getWidth() / 2;
@@ -307,7 +312,7 @@ public class CameraFragment extends Fragment
             focusView.clear();
         } catch (Throwable t)
         {
-            Log.e(TAG, "setupCameraUseCases: error in autofocus", t);
+            Timber.e(t, "setupCameraUseCases: error in autofocus");
         }
     }
 
@@ -322,8 +327,7 @@ public class CameraFragment extends Fragment
     {
         camera.getCameraControl().cancelFocusAndMetering();
         focusButton.setChecked(false);
-        CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(lensFacing).build();
-        MeteringPointFactory meteringPointFactory = viewFinder.createMeteringPointFactory(cameraSelector);
+        MeteringPointFactory meteringPointFactory = viewFinder.getMeteringPointFactory();
         MeteringPoint meteringPoint = meteringPointFactory.createPoint(center.x, center.y);
         int meteringMode = FocusMeteringAction.FLAG_AF | FocusMeteringAction.FLAG_AE | FocusMeteringAction.FLAG_AWB;
         FocusMeteringAction tapToFocusMeteringAction =
@@ -344,10 +348,10 @@ public class CameraFragment extends Fragment
         // Get screen metrics used to setup camera for full screen resolution
         DisplayMetrics metrics = new DisplayMetrics();
         viewFinder.getDisplay().getRealMetrics(metrics);
-        Log.d(TAG, String.format("Screen metrics: %d x %d", metrics.widthPixels, metrics.heightPixels));
+        Timber.d("Screen metrics: %d x %d", metrics.widthPixels, metrics.heightPixels);
 
         int screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels);
-        Log.d(TAG, String.format("Preview aspect ratio: %d", screenAspectRatio));
+        Timber.d("Preview aspect ratio: %d", screenAspectRatio);
 
         int rotation = viewFinder.getDisplay().getRotation();
 
@@ -429,23 +433,19 @@ public class CameraFragment extends Fragment
                     // Attach the viewfinder's surface provider to preview use case
                     if (preview != null)
                     {
-                        preview.setSurfaceProvider(viewFinder.createSurfaceProvider());
+                        preview.setSurfaceProvider(viewFinder.getSurfaceProvider());
                     }
                     // Start auto focus at center of screen
                     startAutoFocus();
                 } catch (Exception exc)
                 {
-                    Log.e(TAG, "Use case binding failed", exc);
-                    viewFinder.post(() -> {
-                        Toast.makeText(requireContext(), String.format("Unable to initialize camera. %s", exc.getMessage()), Toast.LENGTH_SHORT).show();
-                    });
+                    Timber.e(exc, "Use case binding failed");
+                    viewFinder.post(() -> Toast.makeText(requireContext(), String.format("Unable to initialize camera. %s", exc.getMessage()), Toast.LENGTH_SHORT).show());
                 }
             } catch (ExecutionException | InterruptedException e)
             {
-                Log.e(TAG, "bindCameraUseCases: Unable to get camera provider", e);
-                viewFinder.post(() -> {
-                    Toast.makeText(requireContext(), String.format("Unable to get camera provider. %s", e.getMessage()), Toast.LENGTH_SHORT).show();
-                });
+                Timber.e(e, "bindCameraUseCases: Unable to get camera provider");
+                viewFinder.post(() -> Toast.makeText(requireContext(), String.format("Unable to get camera provider. %s", e.getMessage()), Toast.LENGTH_SHORT).show());
             }
         }, ContextCompat.getMainExecutor(requireContext()));
     }
@@ -524,12 +524,14 @@ public class CameraFragment extends Fragment
             }
         } catch (GalleryManager.GalleryAccessFailure e)
         {
-            Log.e(TAG, "updateCameraUi: Unable to find existing images.", e);
+            Timber.e(e, "updateCameraUi: Unable to find existing images.");
             Throwable rootCause = Throwables.getRootCause(e);
-            viewFinder.post(() -> {
-                Toast.makeText(requireContext(), String.format("Unable to find existing images. %s", rootCause.getMessage()), Toast.LENGTH_SHORT).show();
-            });
+            viewFinder.post(() -> Toast.makeText(requireContext(), String.format("Unable to find existing images. %s", rootCause.getMessage()), Toast.LENGTH_SHORT).show());
         }
+
+
+        ImageButton prefsButton = controls.findViewById(R.id.prefsButton);
+        prefsButton.setOnClickListener(v -> openPreferences());
 
         // Update the flashButton to reflect the current state.
         ImageButton flashButton = controls.findViewById(R.id.flashButton);
@@ -594,13 +596,20 @@ public class CameraFragment extends Fragment
                 }
             } catch (GalleryManager.GalleryAccessFailure galleryAccessFailure)
             {
-                Log.e(TAG, "updateCameraUi: Unable to find existing images.", galleryAccessFailure);
+                Timber.e(galleryAccessFailure, "updateCameraUi: Unable to find existing images.");
                 Throwable rootCause = Throwables.getRootCause(galleryAccessFailure);
-                viewFinder.post(() -> {
-                    Toast.makeText(requireContext(), String.format("Unable to find existing images. %s", rootCause.getMessage()), Toast.LENGTH_SHORT).show();
-                });
+                viewFinder.post(() -> Toast.makeText(requireContext(), String.format("Unable to find existing images. %s", rootCause.getMessage()), Toast.LENGTH_SHORT).show());
             }
         });
+    }
+
+    private void openPreferences()
+    {
+        Fragment settingsFragment = new SettingsFragment();
+        FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, settingsFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 
     /**
@@ -634,7 +643,7 @@ public class CameraFragment extends Fragment
                                 shutterSound.start();
                             }
 
-                            Image image;
+                            Image image = null;
                             try
                             {
                                 // create an image model object
@@ -643,36 +652,40 @@ public class CameraFragment extends Fragment
                                 // if the current value of lensFacing is front, then the image is horizontally reversed.
                                 viewModel.setReversed((lensFacing == CameraSelector.LENS_FACING_FRONT));
                                 Uri savedUri = image.getUri();
-                                Log.d(TAG, String.format("Photo capture succeeded: %s", savedUri));
+
+                                Timber.d(savedUri.getPath(), "Photo capture succeeded: %s");
                                 setGalleryThumbnail(savedUri);
+
                                 try
                                 {
                                     // Publish the image to other services
                                     image.publish();
                                 } catch (PublicationDelegate.PublicationFailure publicationFailure)
                                 {
-                                    Log.e(TAG, "Unable to publish image.", publicationFailure);
+                                    Timber.e(publicationFailure, "Unable to publish image.");
                                     viewFinder.post(() ->
                                             Toast.makeText(requireContext(), String.format("Unable to publish image. %s", publicationFailure.getMessage()), Toast.LENGTH_LONG).show());
                                 }
                                 // Automatically navigate to edit the supplementary data.
-                                Navigation.findNavController(requireActivity(), R.id.fragment_container)
-                                        .navigate(CameraFragmentDirections.actionCameraFragmentToSupplementaryInputFragment());
+                                new Handler(Looper.getMainLooper()).post(() ->
+                                        Navigation.findNavController(requireActivity(), R.id.fragment_container)
+                                                .navigate(CameraFragmentDirections.actionCameraFragmentToSupplementaryInputFragment()));
+
                             } catch (ImageFileWriter.FormatNotSupportedException unlikely)
                             {
                                 // OnCaptureSuccess doc says "The image is of format ImageFormat.JPEG". So, this should never happen.
                                 // https://developer.android.com/reference/androidx/camera/core/ImageCapture.OnImageCapturedListener#onCaptureSuccess(androidx.camera.core.ImageProxy,%20int)
-                                Log.wtf(TAG, "Format not supported.", unlikely);
+                                Timber.wtf(unlikely, "Format not supported.");
                                 viewFinder.post(() ->
                                         Toast.makeText(requireContext(), String.format("Camera capture format not supported. %s", unlikely.getMessage()), Toast.LENGTH_LONG).show());
                             } catch (ImageFileWriter.WriteException writeException)
                             {
-                                Log.e(TAG, "Unable to save image.", writeException);
+                                Timber.e(writeException, "Unable to save image.");
                                 viewFinder.post(() ->
                                         Toast.makeText(requireContext(), String.format("Unable to save image. %s", writeException.getMessage()), Toast.LENGTH_LONG).show());
                             } catch (AMetadataDelegate.ReadFailure readFailure)
                             {
-                                Log.w(TAG, "Unable to read image metadata.", readFailure);
+                                Timber.w(readFailure, "Unable to read image metadata.");
                                 viewFinder.post(() ->
                                         Toast.makeText(requireContext(), String.format("Unable to read image metadata. %s", readFailure.getMessage()), Toast.LENGTH_SHORT).show());
                             } finally
@@ -684,7 +697,7 @@ public class CameraFragment extends Fragment
                         @Override
                         public void onError(@NonNull ImageCaptureException exception)
                         {
-                            Log.e(TAG, "onError: Unable to capture image.", exception);
+                            Timber.e(exception, "onError: Unable to capture image.");
                             viewFinder.post(() ->
                                     Toast.makeText(requireContext(), String.format("Unable to capture image. %s", exception.getMessage()), Toast.LENGTH_SHORT).show());
                         }

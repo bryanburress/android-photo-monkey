@@ -1,5 +1,6 @@
 package com.chesapeaketechnology.photomonkey.model;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -159,7 +160,7 @@ public class GalleryManager
                 cursor.moveToFirst();
                 while (!cursor.isAfterLast())
                 {
-                    //                String real_path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+                    @SuppressLint("Range")
                     Uri contentUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cursor.getInt(cursor.getColumnIndex(MediaStore.Images.ImageColumns._ID)));
                     uris.add(contentUri);
                     cursor.moveToNext();

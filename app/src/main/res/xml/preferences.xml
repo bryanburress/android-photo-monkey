@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <SwitchPreferenceCompat
+        app:defaultValue="false"
+        app:icon="@drawable/ic_mdm_control"
+        app:isPreferenceVisible="false"
+        app:key="mdm_override"
+        app:summaryOff="@string/mdm_override_summary_off"
+        app:summaryOn="@string/mdm_override_summary_on"
+        app:title="@string/mdm_override_title" />
+
+    <SwitchPreferenceCompat
+        app:defaultValue="true"
+        app:icon="@drawable/ic_wifi"
+        app:key="wifiOnly"
+        app:summaryOff="@string/wifi_only_summary_off"
+        app:summaryOn="@string/wifi_only_summary_on"
+        app:title="@string/wifi_only_title" />
+
+    <SwitchPreferenceCompat
+        app:defaultValue="false"
+        app:icon="@drawable/ic_vpn"
+        app:key="vpnOnly"
+        app:summaryOff="@string/vpn_only_summary_off"
+        app:summaryOn="@string/vpn_only_summary_on"
+        app:title="@string/vpn_only_title" />
+
+    <PreferenceCategory
+        app:initialExpandedChildrenCount="0"
+        app:key="serverConfig"
+        app:title="@string/server_config_title">
+
+        <EditTextPreference
+            app:dialogMessage="@string/device_id_description"
+            app:key="deviceId"
+            app:title="@string/device_id_title"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:dialogMessage="@string/url_preference_description"
+            app:key="remote_url"
+            app:title="@string/remote_url_title"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

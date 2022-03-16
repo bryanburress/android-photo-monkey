@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.DisplayCutout;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,12 +21,12 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.viewpager.widget.ViewPager;
 
-import com.chesapeaketechnology.photomonkey.BuildConfig;
 import com.chesapeaketechnology.photomonkey.R;
 import com.chesapeaketechnology.photomonkey.model.AMetadataDelegate;
 import com.chesapeaketechnology.photomonkey.model.GalleryManager;
 import com.chesapeaketechnology.photomonkey.model.Image;
 import com.chesapeaketechnology.photomonkey.model.PublicationDelegate;
+import com.google.android.datatransport.BuildConfig;
 import com.google.common.base.Throwables;
 
 import java.io.File;
@@ -37,6 +36,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import timber.log.Timber;
+
 /**
  * Fragment responsible for allowing users to see, edit, delete, and share existing photos.
  *
@@ -44,7 +45,6 @@ import java.util.function.Consumer;
  */
 public class GalleryFragment extends Fragment
 {
-    private static final String TAG = GalleryFragment.class.getSimpleName();
     private final GalleryManager galleryManager;
     private List<Uri> mediaList = new ArrayList<>();
 
@@ -65,7 +65,7 @@ public class GalleryFragment extends Fragment
             mediaList = galleryManager.getMedia();
         } catch (GalleryManager.GalleryAccessFailure e)
         {
-            Log.e(TAG, "updateCameraUi: Unable to find existing images.", e);
+            Timber.e(e, "updateCameraUi: Unable to find existing images.");
             Throwable rootCause = Throwables.getRootCause(e);
             requireView().post(() -> {
                 Toast.makeText(requireContext(), String.format("Unable to find existing images. %s", rootCause.getMessage()), Toast.LENGTH_SHORT).show();
@@ -151,7 +151,7 @@ public class GalleryFragment extends Fragment
                     startActivity(Intent.createChooser(intent, "Share using"));
                 } catch (AMetadataDelegate.ReadFailure | IOException shareFailure)
                 {
-                    Log.e(TAG, "bindCameraUseCases: Unable to get create share intent", shareFailure);
+                    Timber.e(shareFailure, "bindCameraUseCases: Unable to get create share intent");
                     requireView().post(() -> {
                         Toast.makeText(requireContext(), String.format("Unable to share photo. %s", shareFailure.getMessage()), Toast.LENGTH_SHORT).show();
                     });
@@ -172,14 +172,14 @@ public class GalleryFragment extends Fragment
                         .navigate(GalleryFragmentDirections.actionGalleryFragmentToSupplementaryInputFragment());
             } catch (AMetadataDelegate.ReadFailure e)
             {
-                Log.e(TAG, String.format("Unable to edit photo. %s", e.getMessage()), e);
+                Timber.e(e, "Unable to edit photo. %s", e.getMessage());
                 view.post(() -> {
                     Toast.makeText(requireContext(), String.format("Unable to edit photo. %s", e.getMessage()), Toast.LENGTH_LONG).show();
                 });
             }
         });
 
-        // ***** Upload to Sync Monkey *****
+        // ***** Upload to Sync Monkey and Azure DataFileReceiver *****
         view.findViewById(R.id.upload_button).setOnClickListener(v -> {
             Uri mediaUri = mediaList.get(mediaViewPager.getCurrentItem());
             try
@@ -187,9 +187,10 @@ public class GalleryFragment extends Fragment
                 Image img = Image.create(mediaUri);
                 PublicationDelegate pd = new PublicationDelegate();
                 pd.sendToSyncMonkey(img);
+                PublicationDelegate.uploadFileToRemoteEndpoint(mediaUri);
             } catch (AMetadataDelegate.ReadFailure | PublicationDelegate.PublicationFailure e)
             {
-                Log.e(TAG, String.format("Unable to publish photo. %s", e.getMessage()), e);
+                Timber.e(e, "Unable to publish photo. %s", e.getMessage());
                 view.post(() -> {
                     Toast.makeText(requireContext(), String.format("Unable to publish photo. %s", e.getMessage()), Toast.LENGTH_LONG).show();
                 });
@@ -211,10 +212,10 @@ public class GalleryFragment extends Fragment
                             }
                         },
                         (Consumer<Uri>) uri -> {
-                            Log.i(TAG, "User cancelled media delete operation.");
+                            Timber.i("User cancelled media delete operation.");
                         },
                         (Consumer<Exception>) discardException -> {
-                            Log.e(TAG, String.format("Unable to delete photo. %s", discardException.getMessage()), discardException);
+                            Timber.e(discardException, "Unable to delete photo. %s", discardException.getMessage());
                             view.post(() -> {
                                 Toast.makeText(requireContext(), String.format("Unable to delete photo. %s", discardException.getMessage()), Toast.LENGTH_LONG).show();
                             });

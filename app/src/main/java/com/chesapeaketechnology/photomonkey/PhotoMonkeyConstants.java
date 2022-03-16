@@ -32,6 +32,7 @@ public final class PhotoMonkeyConstants
                     View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
                     View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
                     View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+
     /**
      * Delay interval for setting the full screen flags after the activity has loaded
      */
@@ -106,4 +107,16 @@ public final class PhotoMonkeyConstants
     public static final String SYNC_MONKEY_PACKAGE = "com.chesapeaketechnology.syncmonkey";
     public static final String SYNC_MONKEY_SHARING_ACTIVITY_CLASS = "com.chesapeaketechnology.syncmonkey.SharingActivity";
     public static final String SYNC_MONKEY_BROADCAST_RECEIVER_CLASS = "com.chesapeaketechnology.syncmonkey.SyncNowBroadcastReceiver";
+
+    // Preferences
+
+    // The following key is used in the app_restrictions.xml file and in the app's shared preferences
+    public static final String PROPERTY_REMOTE_POST_URL = "remote_url";
+
+    // User Preference keys and MDM managed configuration keys
+    public static final String PROPERTY_MDM_OVERRIDE_KEY = "mdm_override";
+    public static final String PROPERTY_DEVICE_ID_KEY = "deviceId";
+    public static final String PROPERTY_VPN_ONLY_KEY = "vpnOnly";
+    public static final String PROPERTY_WIFI_ONLY_KEY = "wifiOnly";
+
 }

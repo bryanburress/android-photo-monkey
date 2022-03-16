@@ -2,6 +2,7 @@ package com.chesapeaketechnology.photomonkey.view;
 
 import android.location.Location;
 
+import androidx.camera.core.ImageCapture;
 import androidx.lifecycle.ViewModel;
 
 import com.chesapeaketechnology.photomonkey.loc.ILocationUpdateListener;
@@ -56,7 +57,8 @@ public class SharedImageViewModel extends ViewModel implements ILocationUpdateLi
         locationManager.addUpdateListener(this);
     }
 
-    public int getFlashMode()
+    public @ImageCapture.FlashMode
+    int getFlashMode()
     {
         return flashMode;
     }
