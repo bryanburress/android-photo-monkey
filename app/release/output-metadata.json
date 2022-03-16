@@ -1,0 +1,20 @@
+{
+  "version": 3,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "us.ctic.photomonkey",
+  "variantName": "release",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 3,
+      "versionName": "0.2.0",
+      "outputFile": "photomonkey-release-0.2.0.apk"
+    }
+  ],
+  "elementType": "File"
+}
