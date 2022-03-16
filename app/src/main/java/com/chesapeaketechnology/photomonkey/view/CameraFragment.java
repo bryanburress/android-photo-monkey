@@ -531,7 +531,10 @@ public class CameraFragment extends Fragment
 
 
         ImageButton prefsButton = controls.findViewById(R.id.prefsButton);
-        prefsButton.setOnClickListener(v -> openPreferences());
+        if (prefsButton != null)
+        {
+            prefsButton.setOnClickListener(v -> openPreferences());
+        }
 
         // Update the flashButton to reflect the current state.
         ImageButton flashButton = controls.findViewById(R.id.flashButton);
