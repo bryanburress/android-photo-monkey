@@ -529,12 +529,8 @@ public class CameraFragment extends Fragment
             viewFinder.post(() -> Toast.makeText(requireContext(), String.format("Unable to find existing images. %s", rootCause.getMessage()), Toast.LENGTH_SHORT).show());
         }
 
-
         ImageButton prefsButton = controls.findViewById(R.id.prefsButton);
-        if (prefsButton != null)
-        {
-            prefsButton.setOnClickListener(v -> openPreferences());
-        }
+        prefsButton.setOnClickListener(v -> openPreferences());
 
         // Update the flashButton to reflect the current state.
         ImageButton flashButton = controls.findViewById(R.id.flashButton);
