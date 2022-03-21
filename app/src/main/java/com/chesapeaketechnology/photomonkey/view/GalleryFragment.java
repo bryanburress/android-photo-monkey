@@ -138,18 +138,16 @@ public class GalleryFragment extends Fragment
                 try
                 {
                     Image img = Image.create(mediaUri);
-                    File fileHandle = img.getAccessibleFile(requireContext());
-                    Uri uri = FileProvider.getUriForFile(view.getContext(), BuildConfig.APPLICATION_ID + ".provider", fileHandle);
                     // Set the appropriate intent extra, type, action and flags
                     intent.setType("image/jpg");
                     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     intent.setAction(Intent.ACTION_SEND);
-                    intent.putExtra(Intent.EXTRA_STREAM, uri);
+                    intent.putExtra(Intent.EXTRA_STREAM, mediaUri);
 
                     // Launch the intent letting the user choose which app to share with
                     startActivity(Intent.createChooser(intent, "Share using"));
-                } catch (AMetadataDelegate.ReadFailure | IOException shareFailure)
+                } catch (AMetadataDelegate.ReadFailure shareFailure)
                 {
                     Timber.e(shareFailure, "bindCameraUseCases: Unable to get create share intent");
                     requireView().post(() -> {
