@@ -8,10 +8,12 @@ import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import com.chesapeaketechnology.photomonkey.util.PhotoUploadApiUtils;
+import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Map;
 import java.util.Objects;
 
 import okhttp3.ResponseBody;
@@ -29,6 +31,8 @@ public class PhotoUploadWorker extends Worker
 {
     public static final String PHOTO_PATH_KEY = "Photo-Path";
     public static final String DEVICE_ID_KEY = "Device-ID";
+    public static final String QUERY_URL_KEY = "Query-URL";
+    public static final String PATH_URL_KEY = "PATH-URL";
     public static final String PHOTOMONKEY_PHOTO_TAG = "PhotoMonkey-Photo";
 
     private final PhotoUploadService uploadService;
@@ -47,6 +51,8 @@ public class PhotoUploadWorker extends Worker
 
         final File photoFile = new File(Objects.requireNonNull(getInputData().getString(PHOTO_PATH_KEY)));
         final String deviceID = getInputData().getString(DEVICE_ID_KEY);
+        final String queryUrl = getInputData().getString(QUERY_URL_KEY);
+        final String pathUrl = getInputData().getString(PATH_URL_KEY);
         byte[] photoContent;
         try
         {
@@ -57,10 +63,14 @@ public class PhotoUploadWorker extends Worker
             return Result.failure();
         }
 
-        final Call<ResponseBody> call = uploadService.postPhoto(new Photo(
+        Map<String, String> queryParameterMap = new Gson().fromJson(queryUrl, Map.class);
+        Photo photo = new Photo(
                 photoFile.getName(),
                 Base64.encodeToString(photoContent, Base64.NO_WRAP),
-                deviceID));
+                deviceID
+        );
+        Call<ResponseBody> call = uploadService.postPhoto(photo, pathUrl, queryParameterMap);
+
         try
         {
             final Response<ResponseBody> response = call.execute();
