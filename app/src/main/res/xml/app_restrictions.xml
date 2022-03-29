@@ -4,7 +4,7 @@
     <restriction
         android:defaultValue="Not Set"
         android:description="@string/post_url"
-        android:key="azure_post_url"
+        android:key="remote_url"
         android:restrictionType="string"
         android:title="@string/post_url" />
 
