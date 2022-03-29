@@ -20,7 +20,7 @@ public class Photo implements Serializable
     @SerializedName("content")
     private String content;
 
-    @SerializedName("id")
+    @SerializedName("device_id")
     private String deviceID;
 
     public Photo()

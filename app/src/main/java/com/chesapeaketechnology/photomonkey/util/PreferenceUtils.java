@@ -3,11 +3,20 @@ package com.chesapeaketechnology.photomonkey.util;
 import android.content.Context;
 import android.content.RestrictionsManager;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.preference.PreferenceManager;
 
 import com.chesapeaketechnology.photomonkey.PhotoMonkeyConstants;
+
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Utility class related to Android preferences and restrictions.
@@ -106,5 +115,28 @@ public class PreferenceUtils
 
         // Next, try to use the value from user preferences
         return preferences.getBoolean(PhotoMonkeyConstants.PROPERTY_WIFI_ONLY_KEY, true);
+    }
+
+    public static String getBaseUrl(String url)
+    {
+        Uri remoteUri = Uri.parse(url);
+        return remoteUri.getScheme() + "://" + remoteUri.getAuthority() + "/";
+    }
+
+    public static String getPathUrl(String url)
+    {
+        return Uri.parse(url).getPath();
+    }
+
+    public static Map<String, String> getQueryParameterMap(String url)
+    {
+        Uri remote = Uri.parse(url);
+        Set<String> params = remote.getQueryParameterNames();
+        Map<String, String> queryParameterMap = new HashMap<>();
+
+        params.forEach(param -> {
+            queryParameterMap.put(param, remote.getQueryParameter(param));
+        });
+        return queryParameterMap;
     }
 }

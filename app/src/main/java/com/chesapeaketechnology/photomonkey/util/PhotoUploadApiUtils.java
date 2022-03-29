@@ -1,5 +1,7 @@
 package com.chesapeaketechnology.photomonkey.util;
 
+import static com.chesapeaketechnology.photomonkey.util.PreferenceUtils.getBaseUrl;
+
 import android.content.Context;
 
 import com.chesapeaketechnology.photomonkey.service.RetryCallAdapterFactory;
@@ -33,7 +35,7 @@ public class PhotoUploadApiUtils
         if (retrofit == null)
         {
             retrofit = new retrofit2.Retrofit.Builder()
-                    .baseUrl(PreferenceUtils.getPostEndpointPreference(context))
+                    .baseUrl(getBaseUrl(PreferenceUtils.getPostEndpointPreference(context)))
                     .addCallAdapterFactory(RetryCallAdapterFactory.create())
                     .addConverterFactory(GsonConverterFactory.create(GSON))
                     .build();
