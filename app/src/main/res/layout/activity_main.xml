@@ -10,4 +10,7 @@
     android:keepScreenOn="true"
     app:defaultNavHost="true"
     app:navGraph="@navigation/nav_graph"
-    tools:context=".PhotoMonkeyActivity" />
+    tools:context=".PhotoMonkeyActivity">
+
+</androidx.fragment.app.FragmentContainerView>
+

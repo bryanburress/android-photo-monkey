@@ -14,23 +14,22 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
+        android:name=".PhotoMonkeyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/CTIDayNightTheme"
-        android:requestLegacyExternalStorage="true"
-        android:name=".PhotoMonkeyApplication"
         tools:targetApi="s">
-
         <activity
-            android:name="com.chesapeaketechnology.photomonkey.PhotoMonkeyActivity"
+            android:name=".PhotoMonkeyActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="true"
             android:label="@string/app_name"
-            android:windowSoftInputMode="stateVisible|adjustResize"
             android:theme="@style/CTIDayNightTheme"
-            android:exported="true">
+            android:windowSoftInputMode="stateVisible|adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -51,7 +50,6 @@
         <meta-data
             android:name="android.content.APP_RESTRICTIONS"
             android:resource="@xml/app_restrictions" />
-
     </application>
 
 </manifest>

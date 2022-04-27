@@ -604,11 +604,8 @@ public class CameraFragment extends Fragment
 
     private void openPreferences()
     {
-        Fragment settingsFragment = new SettingsFragment();
-        FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_container, settingsFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
+        Navigation.findNavController(getActivity(), R.id.fragment_container)
+                .navigate(CameraFragmentDirections.actionCameraFragmentToSettingsFragment());
     }
 
     /**

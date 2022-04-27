@@ -24,6 +24,8 @@
     <string name="no_comment">No Comment</string>
     <string name="post_url">Post URL</string>
 
+    <string name="scanned_text">Scanned Text</string>
+
     <string name="device_id_title">Device ID</string>
     <string name="device_id_description">The device ID, which will be used to create a folder to group all uploaded files together</string>
 
@@ -53,5 +55,7 @@
     <string name="sync_directories_title">Sync Directories</string>
     <string name="sync_directories_summary">The Directories to sync to the server (entries separated by a colon)</string>
     <string name="url_preference_description">URL for connecting to the Azure File Upload. This value is not needed if it is managed by the device administrator (MDM).</string>
+    <string name="scan_button_title">Scan QR Code</string>
+    <string name="settings">Settings</string>
 
 </resources>
