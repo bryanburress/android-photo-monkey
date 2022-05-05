@@ -35,6 +35,9 @@
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim"
             app:popUpTo="@id/cameraFragment" />
+        <action
+            android:id="@+id/action_cameraFragment_to_settings_fragment"
+            app:destination="@id/settings_fragment" />
     </fragment>
     <fragment
         android:id="@+id/galleryFragment"
@@ -58,4 +61,28 @@
             app:destination="@id/cameraFragment"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
+    <fragment
+        android:id="@+id/codeScannerFragment"
+        android:name="com.chesapeaketechnology.photomonkey.view.CodeScannerFragment">
+        <action
+            android:id="@+id/action_codeScannerFragment_to_settingsFragment"
+            app:destination="@id/settings_fragment">
+            <argument
+                android:name="@string/scanned_text"
+                app:argType="string" />
+        </action>
+    </fragment>
+
+    <fragment
+        android:id="@+id/settings_fragment"
+        android:name="com.chesapeaketechnology.photomonkey.view.SettingsFragment"
+        android:label="@string/settings">
+        <action
+            android:id="@+id/action_settings_fragment_to_cameraFragment"
+            app:destination="@id/cameraFragment" />
+        <action
+            android:id="@+id/action_settings_fragment_to_codeScannerFragment"
+            app:destination="@id/codeScannerFragment" />
+    </fragment>
+
 </navigation>

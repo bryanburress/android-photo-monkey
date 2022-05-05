@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    app:widgetLayout="@style/Widget.Design.AppBarLayout">
 
     <SwitchPreferenceCompat
         app:defaultValue="false"
@@ -28,7 +29,7 @@
         app:title="@string/vpn_only_title" />
 
     <PreferenceCategory
-        app:initialExpandedChildrenCount="0"
+        app:initialExpandedChildrenCount="2"
         app:key="serverConfig"
         app:title="@string/server_config_title">
 
@@ -42,7 +43,8 @@
             app:dialogMessage="@string/url_preference_description"
             app:key="remote_url"
             app:title="@string/remote_url_title"
-            app:useSimpleSummaryProvider="true" />
+            app:useSimpleSummaryProvider="true"
+            android:widgetLayout="@layout/code_scan_button" />
 
     </PreferenceCategory>
 

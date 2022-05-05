@@ -9,14 +9,17 @@ import android.content.RestrictionsManager;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.KeyEvent;
+import android.view.View;
 import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.navigation.Navigation;
 import androidx.preference.PreferenceManager;
 
 import com.chesapeaketechnology.photomonkey.loc.ILocationManagerProvider;
 import com.chesapeaketechnology.photomonkey.loc.LocationManager;
+import com.chesapeaketechnology.photomonkey.view.SettingsFragmentDirections;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -45,6 +48,7 @@ public class PhotoMonkeyActivity extends AppCompatActivity implements ILocationM
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         container = findViewById(R.id.fragment_container);
         managedConfigurationListener = registerManagedConfigurationListener(getApplicationContext());
@@ -197,5 +201,18 @@ public class PhotoMonkeyActivity extends AppCompatActivity implements ILocationM
             }
             managedConfigurationListener = null;
         }
+    }
+
+    /**
+     * Handle QR Code button click
+     * @param v The view holding the button
+     *
+     * @since 0.2.5
+     */
+    public void onQrScanButtonClick(View v)
+    {
+        Navigation.findNavController(this, R.id.fragment_container)
+                .navigate(SettingsFragmentDirections.actionSettingsFragmentToCodeScannerFragment()
+        );
     }
 }
