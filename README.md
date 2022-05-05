@@ -15,7 +15,12 @@ To build and install the project follow the steps below:
 
 Install Android Studio to work on this code.
 
+### QR Code Scanner
+ The QR code scanner is available for easier one-off configuration of Photo Monkey remote URL when MDM is not used. The QR code should hold the full URL to POST photos to. 
+
 ## Changelog
+ ##### [0.2.5](https://github.com/chesapeaketechnology/android-photo-monkey/releases/tag/v0.2.5) - 2022-05-05
+  * Add QR code scanner for the remote URL setting
 
  ##### [0.2.0](https://github.com/chesapeaketechnology/android-photo-monkey/releases/tag/v0.2.0) - 2022-03-11
   * Add settings screen and allow for MDM management of settings
