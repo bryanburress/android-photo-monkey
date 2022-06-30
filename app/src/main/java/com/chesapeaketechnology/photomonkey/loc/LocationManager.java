@@ -10,11 +10,12 @@ import android.location.LocationListener;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleObserver;
-import androidx.lifecycle.OnLifecycleEvent;
+import androidx.lifecycle.LifecycleOwner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +34,7 @@ import timber.log.Timber;
  *
  * @since 0.2.0
  */
-public class LocationManager implements LifecycleObserver
+public class LocationManager implements DefaultLifecycleObserver
 {
     private static final int LOW_POWER_STEP_DOWN_MULTIPLIER = 10;
     private final Context context;
@@ -55,34 +56,34 @@ public class LocationManager implements LifecycleObserver
         lifecycle.addObserver(this);
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
-    void create()
+    @Override
+    public void onCreate(@NonNull LifecycleOwner owner)
     {
         locationManager = (android.location.LocationManager) context.getSystemService(LOCATION_SERVICE);
         Criteria criteria = getCriteria(LocationTrackingMode.LOW_POWER);
         register(criteria, LOCATION_REFRESH_TIME_MS, LOCATION_REFRESH_DISTANCE_METERS);
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    void resume()
+    @Override
+    public void onResume(@NonNull LifecycleOwner owner)
     {
-        switchTo(LocationManager.LocationTrackingMode.HIGH_ACCURACY);
+        switchTo(LocationTrackingMode.HIGH_ACCURACY);
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-    void pause()
+    @Override
+    public void onPause(@NonNull LifecycleOwner owner)
     {
         // TODO: 5/23/20 Do I need to slow down the updates on pause?
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-    void stop()
+    @Override
+    public void onStop(@NonNull LifecycleOwner owner)
     {
-        switchTo(LocationManager.LocationTrackingMode.LOW_POWER);
+        switchTo(LocationTrackingMode.LOW_POWER);
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-    void destroy()
+    @Override
+    public void onDestroy(@NonNull LifecycleOwner owner)
     {
         lifecycle.removeObserver(this);
         deregister();
