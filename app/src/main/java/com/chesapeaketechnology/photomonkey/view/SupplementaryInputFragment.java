@@ -83,13 +83,13 @@ public class SupplementaryInputFragment extends Fragment
         view.findViewById(R.id.saveButton).setOnClickListener(e -> {
             try
             {
-                String description = descriptionField.getText().toString();
-                if (!TextUtils.isEmpty(description))
-                {
-                    Metadata metadata = new Metadata(description, model.getLastLocation(), model.isReversed());
-                    Image image = model.getImage().updateMetadata(metadata);
-                    model.setImage(image);
-                }
+                Metadata metadata = new Metadata(
+                        descriptionField.getText().toString(),
+                        model.getLastLocation(),
+                        model.isReversed());
+                Image image = model.getImage().updateMetadata(metadata);
+                model.setImage(image);
+
                 PublicationDelegate.kickOffSyncMonkeySync();
                 PublicationDelegate.uploadFileToRemoteEndpoint(model.getImage().getUri());
                 Navigation.findNavController(requireActivity(), R.id.fragment_container).navigateUp();
