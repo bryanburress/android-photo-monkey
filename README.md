@@ -17,6 +17,52 @@ Install Android Studio to work on this code.
 
 ### QR Code Scanner
  The QR code scanner is available for easier one-off configuration of Photo Monkey remote URL when MDM is not used. The QR code should hold the full URL to POST photos to. 
+ 
+### Example JSON body  
+If a URL is configured Photomonkey will POST a base64 encoded image to the configured url with the following parameters. 
+
+```json
+
+    {
+        "content": {
+            "type": "string"
+         },
+        "filename": {
+            "type": "string"
+        },
+        "id": {
+            "type": "string"
+        },
+        "version": {
+            "type": "string"
+        }
+    }
+
+```
+
+Example Post Recieve object. 
+
+```json
+
+{
+    "headers": {
+        "Accept-Encoding": "gzip",
+        "Host": "prod-54.somewhere.logic.azure.com",
+        "User-Agent": "Dart/2.17,(dart:io)",
+        "Content-Length": "216089",
+        "Content-Type": "application/json; charset=utf-8"
+    },
+    "body": {
+        "content": "base64 Encoded string",
+        "id": "user",
+        "filename": "PM_2022-03-24-mrpuC.jpg",
+        "version": "0.1.0"
+    }
+}
+
+```
+
+ 
 
 ## Changelog
  ##### [0.2.5](https://github.com/chesapeaketechnology/android-photo-monkey/releases/tag/v0.2.5) - 2022-05-05
